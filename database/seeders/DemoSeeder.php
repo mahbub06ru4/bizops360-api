@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Seeders;
+
+use App\Models\User;
+use App\Modules\Authorization\Actions\ProvisionTenantRbac;
+use App\Modules\Authorization\Roles;
+use App\Modules\Tenant\Context\TenantContext;
+use App\Modules\Tenant\Models\Tenant;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Spatie\Permission\PermissionRegistrar;
+
+/**
+ * Two demo tenants, each with one user per role. Passwords are all "password".
+ * Emails: {role}@{slug}.test
+ */
+class DemoSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $rbac = app(ProvisionTenantRbac::class);
+        $registrar = app(PermissionRegistrar::class);
+        $context = app(TenantContext::class);
+
+        foreach ([
+            ['name' => 'Wanderlust Travel', 'slug' => 'wanderlust', 'industry' => 'travel'],
+            ['name' => 'Skyline Properties', 'slug' => 'skyline', 'industry' => 'real_estate'],
+        ] as $spec) {
+            $tenant = Tenant::updateOrCreate(
+                ['slug' => $spec['slug']],
+                ['name' => $spec['name'], 'industry' => $spec['industry']],
+            );
+
+            $rbac->handle($tenant);
+
+            $context->set($tenant);
+            $registrar->setPermissionsTeamId($tenant->getKey());
+
+            foreach (Roles::all() as $role) {
+                $user = User::firstOrNew(['email' => "{$role}@{$spec['slug']}.test"]);
+                $user->tenant_id = $tenant->getKey();
+                $user->name = Str::headline($role).' '.Str::headline($spec['slug']);
+                $user->password = Hash::make('password');
+                $user->email_verified_at = now();
+                $user->save();
+
+                if (! $user->hasRole($role)) {
+                    $user->assignRole($role);
+                }
+            }
+
+            $context->clear();
+            $registrar->setPermissionsTeamId(null);
+        }
+    }
+}
