@@ -25,3 +25,6 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Generated OpenAPI export (produced by: php artisan scramble:export)
+/api.json
