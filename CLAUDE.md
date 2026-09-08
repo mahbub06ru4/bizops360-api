@@ -5,7 +5,7 @@ Read `docs/spec.md` at the start of every phase before planning.
 
 ## Stack
 
-- Laravel 13, PHP 8.3+, PostgreSQL, Redis, Filament 5, Flutter (GetX), Docker / Laravel Sail
+- Laravel 13, PHP 8.4+, PostgreSQL, Redis, Filament 5, Flutter (GetX), Docker / Laravel Sail
 - Auth: Fortify/Breeze (web) + Sanctum (API). RBAC: `spatie/laravel-permission`.
 - OpenAPI generated from code (`dedoc/scramble`). Prod: Render + Neon + S3-compatible storage.
 
