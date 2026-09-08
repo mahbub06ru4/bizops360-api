@@ -22,9 +22,13 @@ class ProvisionTenantRbac
     public function handle(Tenant $tenant): void
     {
         DB::transaction(function () use ($tenant): void {
+            $this->registrar->forgetCachedPermissions();
+
             foreach (Roles::permissions() as $permission) {
                 Permission::findOrCreate($permission, 'web');
             }
+
+            $this->registrar->forgetCachedPermissions();
 
             $previousTeam = $this->registrar->getPermissionsTeamId();
             $this->registrar->setPermissionsTeamId($tenant->getKey());

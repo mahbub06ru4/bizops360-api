@@ -33,6 +33,7 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
+    # Test-time cache/queue/session come from phpunit.xml (array/sync/array).
     env:
       DB_CONNECTION: pgsql
       DB_HOST: 127.0.0.1
@@ -41,9 +42,6 @@ jobs:
       DB_USERNAME: sail
       DB_PASSWORD: password
       REDIS_HOST: 127.0.0.1
-      CACHE_STORE: redis
-      QUEUE_CONNECTION: redis
-      SESSION_DRIVER: redis
 
     steps:
       - uses: actions/checkout@v4

@@ -12,6 +12,11 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
+    ->beforeEach(function (): void {
+        // Rate limiter state lives in the cache; keep every test isolated.
+        cache()->flush();
+        clearTenantContext();
+    })
     ->in('Feature', 'Unit');
 
 /**
