@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\ForceJsonResponse;
+use App\Modules\Operations\Http\Controllers\Api\V1\OperationsOverviewController;
 use App\Modules\Operations\Http\Controllers\Api\V1\ProjectController;
 use App\Modules\Operations\Http\Controllers\Api\V1\TaskActivityController;
 use App\Modules\Operations\Http\Controllers\Api\V1\TaskAttachmentController;
@@ -21,6 +22,13 @@ Route::prefix('api/v1')
         SubstituteBindings::class,
     ])
     ->group(function (): void {
+        Route::get('operations/overview', [OperationsOverviewController::class, 'overview'])
+            ->name('operations.overview');
+        Route::get('operations/workload', [OperationsOverviewController::class, 'workload'])
+            ->name('operations.workload');
+        Route::get('operations/department-performance', [OperationsOverviewController::class, 'departmentPerformance'])
+            ->name('operations.department-performance');
+
         Route::apiResource('projects', ProjectController::class);
 
         Route::get('tasks/{task}/comments', [TaskCommentController::class, 'index'])->name('tasks.comments.index');
