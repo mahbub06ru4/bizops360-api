@@ -38,6 +38,39 @@ final class Roles
         return [
             'tenant.settings.view',
             'tenant.settings.update',
+
+            'branch.view',
+            'branch.create',
+            'branch.update',
+            'branch.delete',
+
+            'department.view',
+            'department.create',
+            'department.update',
+            'department.delete',
+
+            'designation.view',
+            'designation.create',
+            'designation.update',
+            'designation.delete',
+
+            'employee.view',
+            'employee.create',
+            'employee.update',
+            'employee.terminate',
+            'employee.delete',
+
+            'team.view',
+            'team.create',
+            'team.update',
+            'team.delete',
+
+            'user.view',
+            'user.create',
+            'user.update',
+            'user.assign_roles',
+            'user.delete',
+            'role.view',
         ];
     }
 
@@ -51,8 +84,22 @@ final class Roles
         return [
             self::OWNER => ['*'],
             self::ADMIN => ['*'],
-            self::MANAGER => ['tenant.settings.view'],
-            self::STAFF => [],
+            self::MANAGER => [
+                'tenant.settings.view',
+                'branch.view', 'branch.create', 'branch.update',
+                'department.view', 'department.create', 'department.update',
+                'designation.view', 'designation.create', 'designation.update',
+                'employee.view', 'employee.create', 'employee.update', 'employee.terminate',
+                'team.view', 'team.create', 'team.update',
+                'user.view', 'role.view',
+            ],
+            self::STAFF => [
+                'branch.view',
+                'department.view',
+                'designation.view',
+                'employee.view',
+                'team.view',
+            ],
         ];
     }
 

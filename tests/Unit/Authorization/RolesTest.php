@@ -13,7 +13,16 @@ it('expands the wildcard grant to every permission', function (): void {
         ->and(Roles::permissionsFor(Roles::ADMIN))->toBe(Roles::permissions());
 });
 
-it('resolves explicit and empty grants', function (): void {
-    expect(Roles::permissionsFor(Roles::MANAGER))->toBe(['tenant.settings.view'])
-        ->and(Roles::permissionsFor(Roles::STAFF))->toBe([]);
+it('resolves explicit grants for manager and staff', function (): void {
+    expect(Roles::permissionsFor(Roles::MANAGER))
+        ->toContain('tenant.settings.view', 'branch.create', 'department.update')
+        ->not->toContain('branch.delete')
+        ->and(Roles::permissionsFor(Roles::STAFF))
+        ->toBe(['branch.view', 'department.view', 'designation.view', 'employee.view', 'team.view']);
+});
+
+it('keeps every explicit grant within the known permission catalogue', function (): void {
+    foreach ([Roles::MANAGER, Roles::STAFF] as $role) {
+        expect(array_diff(Roles::permissionsFor($role), Roles::permissions()))->toBe([]);
+    }
 });
