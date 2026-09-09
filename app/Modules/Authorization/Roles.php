@@ -153,6 +153,32 @@ final class Roles
             'invoice.refund',
 
             'finance.view_reports',
+
+            'traveller.view',
+            'traveller.view_all',
+            'traveller.create',
+            'traveller.update',
+            'traveller.delete',
+
+            'visa_application.view',
+            'visa_application.view_all',
+            'visa_application.create',
+            'visa_application.update',
+            'visa_application.submit',
+            'visa_application.decide',
+            'visa_application.delete',
+
+            'booking.view',
+            'booking.view_all',
+            'booking.create',
+            'booking.update',
+            'booking.issue',
+            'booking.cancel',
+            'booking.refund',
+            'booking.invoice',
+            'booking.delete',
+
+            'travel.view_dashboard',
         ];
     }
 
@@ -194,6 +220,11 @@ final class Roles
                 'expense.view', 'expense.create', 'expense.update',
                 'invoice.view', 'invoice.create', 'invoice.update',
                 'invoice.send', 'invoice.record_payment', 'finance.view_reports',
+                'traveller.view', 'traveller.view_all', 'traveller.create', 'traveller.update',
+                'visa_application.view', 'visa_application.view_all', 'visa_application.create',
+                'visa_application.update', 'visa_application.submit', 'visa_application.decide',
+                'booking.view', 'booking.view_all', 'booking.create', 'booking.update',
+                'booking.issue', 'booking.cancel', 'booking.invoice', 'travel.view_dashboard',
             ],
             self::STAFF => [
                 'branch.view',
@@ -221,6 +252,15 @@ final class Roles
                 'follow_up.view',
                 'follow_up.create',
                 'follow_up.update',
+                'traveller.view',
+                'traveller.create',
+                'traveller.update',
+                'visa_application.view',
+                'visa_application.create',
+                'visa_application.update',
+                'booking.view',
+                'booking.create',
+                'booking.update',
             ],
         ];
     }

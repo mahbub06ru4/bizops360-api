@@ -49,6 +49,15 @@ function makeUser(Tenant $tenant, ?string $role = null): User
 }
 
 /**
+ * Create a tenant in a given industry (defaults to travel) with its roles
+ * provisioned — for the industry-gated modules.
+ */
+function makeIndustryTenant(string $industry = 'travel', array $attributes = []): Tenant
+{
+    return makeTenant([...$attributes, 'industry' => $industry]);
+}
+
+/**
  * Forget any bound tenant / team id. Call between assertions that switch tenants.
  */
 function clearTenantContext(): void
