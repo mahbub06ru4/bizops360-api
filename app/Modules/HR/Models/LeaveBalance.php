@@ -23,7 +23,6 @@ use Illuminate\Support\Carbon;
  * @property int $year
  * @property int $entitled_days
  * @property int $used_days
- * @property-read int $remaining_days
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -45,11 +44,6 @@ class LeaveBalance extends Model
     public function leaveType(): BelongsTo
     {
         return $this->belongsTo(LeaveType::class);
-    }
-
-    public function getRemainingDaysAttribute(): int
-    {
-        return $this->entitled_days - $this->used_days;
     }
 
     /**

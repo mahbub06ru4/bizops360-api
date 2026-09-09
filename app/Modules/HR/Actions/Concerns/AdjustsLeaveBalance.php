@@ -43,10 +43,11 @@ trait AdjustsLeaveBalance
         }
 
         $used = $balance->used_days + $delta;
+        $remaining = $balance->entitled_days - $balance->used_days;
 
         if ($delta > 0 && $used > $balance->entitled_days) {
             throw ValidationException::withMessages([
-                'days' => "Insufficient {$type->name} balance: {$balance->remaining_days} day(s) remaining.",
+                'days' => "Insufficient {$type->name} balance: {$remaining} day(s) remaining.",
             ]);
         }
 

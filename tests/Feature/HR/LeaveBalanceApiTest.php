@@ -30,13 +30,21 @@ it('lets a manager set and list a leave balance', function (): void {
 it('updates the entitlement without touching used days', function (): void {
     $tenant = makeTenant();
     $manager = makeUser($tenant, 'manager');
-    $balance = LeaveBalance::factory()->forTenant($tenant)->create(['used_days' => 5, 'entitled_days' => 20]);
+    $employee = Employee::factory()->forTenant($tenant)->create();
+    $type = LeaveType::factory()->forTenant($tenant)->create();
+    LeaveBalance::factory()->forTenant($tenant)->create([
+        'employee_id' => $employee->id,
+        'leave_type_id' => $type->id,
+        'year' => 2026,
+        'used_days' => 5,
+        'entitled_days' => 20,
+    ]);
     clearTenantContext();
 
     $this->actingAs($manager, 'sanctum')->putJson('/api/v1/leave-balances', [
-        'employee_id' => $balance->employee_id,
-        'leave_type_id' => $balance->leave_type_id,
-        'year' => $balance->year,
+        'employee_id' => $employee->id,
+        'leave_type_id' => $type->id,
+        'year' => 2026,
         'entitled_days' => 25,
     ])->assertOk()
         ->assertJsonPath('data.entitled_days', 25)

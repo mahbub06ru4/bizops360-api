@@ -26,21 +26,20 @@ class SetLeaveBalance
         $this->assertReferenceOwned($data->employeeId, Employee::class);
         $this->assertReferenceOwned($data->leaveTypeId, LeaveType::class);
 
-        $balance = LeaveBalance::query()->firstOrNew([
-            'employee_id' => $data->employeeId,
-            'leave_type_id' => $data->leaveTypeId,
-            'year' => $data->year,
-        ]);
+        $balance = LeaveBalance::query()->firstOrNew(
+            [
+                'employee_id' => $data->employeeId,
+                'leave_type_id' => $data->leaveTypeId,
+                'year' => $data->year,
+            ],
+            ['used_days' => 0],
+        );
 
-        if (! $balance->exists) {
-            $balance->tenant_id = $this->currentTenantId();
-            $balance->used_days = 0;
-        }
-
+        $balance->tenant_id = $this->currentTenantId();
         $balance->entitled_days = $data->entitledDays;
         $balance->save();
 
-        return $balance->load(['employee', 'leaveType']);
+        return $balance->fresh(['employee', 'leaveType']) ?? $balance;
     }
 
     protected function tenantContext(): TenantContext

@@ -26,7 +26,7 @@ class LeaveBalanceResource extends JsonResource
             'year' => $this->year,
             'entitled_days' => $this->entitled_days,
             'used_days' => $this->used_days,
-            'remaining_days' => $this->remaining_days,
+            'remaining_days' => (int) $this->entitled_days - (int) $this->used_days,
             'employee' => new EmployeeResource($this->whenLoaded('employee')),
             'leave_type' => new LeaveTypeResource($this->whenLoaded('leaveType')),
         ];
