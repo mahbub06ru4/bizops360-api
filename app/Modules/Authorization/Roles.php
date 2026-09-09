@@ -109,6 +109,8 @@ final class Roles
             'task.update',
             'task.assign',
             'task.delete',
+
+            'operations.view_dashboard',
         ];
     }
 
@@ -139,7 +141,7 @@ final class Roles
                 'employee_document.upload', 'employee_document.delete',
                 'project.view', 'project.create', 'project.update', 'project.delete',
                 'task.view', 'task.view_all', 'task.create', 'task.update',
-                'task.assign', 'task.delete',
+                'task.assign', 'task.delete', 'operations.view_dashboard',
             ],
             self::STAFF => [
                 'branch.view',
