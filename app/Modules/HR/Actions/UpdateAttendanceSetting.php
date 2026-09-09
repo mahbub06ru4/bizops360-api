@@ -20,12 +20,16 @@ class UpdateAttendanceSetting
 
     public function handle(AttendanceSettingData $data): AttendanceSetting
     {
-        $setting = AttendanceSetting::query()->firstOrNew([]);
-        $setting->tenant_id = $this->currentTenantId();
+        $tenantId = $this->currentTenantId();
+
+        $setting = AttendanceSetting::query()->where('tenant_id', $tenantId)->first()
+            ?? new AttendanceSetting;
+
+        $setting->tenant_id = $tenantId;
         $setting->fill($data->toAttributes());
         $setting->save();
 
-        return $setting->refresh();
+        return $setting;
     }
 
     protected function tenantContext(): TenantContext
