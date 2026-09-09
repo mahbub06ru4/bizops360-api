@@ -9,6 +9,7 @@ use App\Modules\Authorization\Actions\ProvisionTenantRbac;
 use App\Modules\Authorization\Roles;
 use App\Modules\CRM\Actions\CreateCustomer;
 use App\Modules\CRM\Data\CustomerData;
+use App\Modules\CRM\Models\Customer;
 use App\Modules\Finance\Actions\CreateInvoice;
 use App\Modules\Finance\Actions\RecordExpense;
 use App\Modules\Finance\Actions\RecordIncome;
@@ -22,6 +23,17 @@ use App\Modules\Finance\Domain\ExpenseCategory;
 use App\Modules\Finance\Domain\IncomeCategory;
 use App\Modules\Finance\Domain\PaymentMethod;
 use App\Modules\Finance\Models\Invoice;
+use App\Modules\Industry\Travel\Actions\CreateBooking;
+use App\Modules\Industry\Travel\Actions\IssueBooking;
+use App\Modules\Industry\Travel\Actions\OpenVisaApplication;
+use App\Modules\Industry\Travel\Actions\RaiseInvoiceForBooking;
+use App\Modules\Industry\Travel\Actions\RegisterTraveller;
+use App\Modules\Industry\Travel\Data\BookingData;
+use App\Modules\Industry\Travel\Data\TravellerData;
+use App\Modules\Industry\Travel\Data\VisaApplicationData;
+use App\Modules\Industry\Travel\Data\VisaRequirementData;
+use App\Modules\Industry\Travel\Domain\TravellerGender;
+use App\Modules\Industry\Travel\Models\Booking;
 use App\Modules\Organization\Actions\CreateBranch;
 use App\Modules\Organization\Actions\CreateDepartment;
 use App\Modules\Organization\Actions\CreateDesignation;
@@ -126,6 +138,10 @@ class DemoSeeder extends Seeder
             }
 
             $this->seedFinance($tenant, $spec['slug']);
+
+            if ($spec['industry'] === 'travel') {
+                $this->seedTravel($tenant, $spec['slug']);
+            }
 
             $context->clear();
             $registrar->setPermissionsTeamId(null);
@@ -251,5 +267,140 @@ class DemoSeeder extends Seeder
             ),
             $owner,
         );
+    }
+
+    /**
+     * Travel-desk demo data for a travel tenant: two travellers with passports,
+     * a visa application mid-pipeline with its checklist, and two bookings — an
+     * issued air ticket and a confirmed Umrah package (invoiced).
+     */
+    private function seedTravel(Tenant $tenant, string $slug): void
+    {
+        if (Booking::query()->where('tenant_id', $tenant->getKey())->exists()) {
+            return;
+        }
+
+        $owner = User::where('email', "owner@{$slug}.test")->first();
+        $customer = Customer::query()->where('tenant_id', $tenant->getKey())->first();
+
+        if ($owner === null || $customer === null) {
+            return;
+        }
+
+        $primary = app(RegisterTraveller::class)->handle(
+            new TravellerData(
+                customerId: $customer->getKey(),
+                fullName: 'Rahim Uddin',
+                gender: TravellerGender::Male,
+                dateOfBirth: '1988-04-12',
+                nationality: 'Bangladeshi',
+                passportNumber: 'BD0123456',
+                passportExpiry: now()->addYears(4)->format('Y-m-d'),
+                passportIssueCountry: 'Bangladesh',
+                phone: '+8801711000000',
+                email: "rahim@{$slug}.test",
+                address: 'Dhaka',
+                notes: null,
+            ),
+            $owner,
+        );
+
+        $spouse = app(RegisterTraveller::class)->handle(
+            new TravellerData(
+                customerId: $customer->getKey(),
+                fullName: 'Ayesha Rahim',
+                gender: TravellerGender::Female,
+                dateOfBirth: '1992-09-03',
+                nationality: 'Bangladeshi',
+                passportNumber: 'BD0654321',
+                passportExpiry: now()->addYears(3)->format('Y-m-d'),
+                passportIssueCountry: 'Bangladesh',
+                phone: '+8801711000001',
+                email: null,
+                address: 'Dhaka',
+                notes: null,
+            ),
+            $owner,
+        );
+
+        app(OpenVisaApplication::class)->handle(
+            new VisaApplicationData(
+                travellerId: $primary->getKey(),
+                customerId: $customer->getKey(),
+                assignedEmployeeId: null,
+                destinationCountry: 'Thailand',
+                visaType: 'tourist',
+                mission: 'VFS Global Dhaka',
+                referenceNo: 'VA-1001',
+                applicationNo: null,
+                governmentFee: '4500.00',
+                serviceCharge: '2000.00',
+                expectedTravelDate: now()->addMonths(2)->format('Y-m-d'),
+            ),
+            $owner,
+            [
+                new VisaRequirementData('Passport', true, true, now()->subDays(3)->toDateString(), null),
+                new VisaRequirementData('Photograph', true, true, now()->subDays(3)->toDateString(), null),
+                new VisaRequirementData('Bank statement', true, false, null, 'Awaiting from client'),
+            ],
+        );
+        // The visa stays in `documents_pending` for the demo — the client's bank
+        // statement is still outstanding on the checklist.
+
+        $ticket = app(CreateBooking::class)->handle(
+            BookingData::fromArray([
+                'customer_id' => $customer->getKey(),
+                'type' => 'air_ticket',
+                'title' => 'DAC–BKK return, Biman',
+                'supplier_name' => 'Air Consolidator BD',
+                'airline' => 'Biman Bangladesh',
+                'origin' => 'DAC',
+                'destination' => 'BKK',
+                'depart_on' => now()->addWeeks(3)->format('Y-m-d'),
+                'return_on' => now()->addWeeks(4)->format('Y-m-d'),
+                'cost_amount' => '82000.00',
+                'sell_amount' => '90000.00',
+                'commission_amount' => '2500.00',
+                'passengers' => [
+                    ['traveller_id' => $primary->getKey(), 'baggage' => '30kg'],
+                    ['traveller_id' => $spouse->getKey(), 'baggage' => '30kg'],
+                ],
+                'segments' => [
+                    ['flight_number' => 'BG388', 'airline' => 'Biman Bangladesh', 'from_airport' => 'DAC', 'to_airport' => 'BKK', 'depart_at' => now()->addWeeks(3)->format('Y-m-d').' 09:30:00'],
+                    ['flight_number' => 'BG389', 'airline' => 'Biman Bangladesh', 'from_airport' => 'BKK', 'to_airport' => 'DAC', 'depart_at' => now()->addWeeks(4)->format('Y-m-d').' 13:00:00'],
+                ],
+            ]),
+            $owner,
+        );
+        app(IssueBooking::class)->handle($ticket, 'BQ7K2P', now()->toDateString());
+
+        $umrah = app(CreateBooking::class)->handle(
+            BookingData::fromArray([
+                'customer_id' => $customer->getKey(),
+                'type' => 'umrah',
+                'title' => 'Umrah package 14N — Makkah + Madinah',
+                'supplier_name' => 'Al-Haramain Travels',
+                'depart_on' => now()->addMonths(2)->format('Y-m-d'),
+                'return_on' => now()->addMonths(2)->addDays(14)->format('Y-m-d'),
+                'cost_amount' => '210000.00',
+                'sell_amount' => '245000.00',
+                'commission_amount' => '0.00',
+                'passengers' => [
+                    ['traveller_id' => $primary->getKey()],
+                    ['traveller_id' => $spouse->getKey()],
+                ],
+                'hotel_stays' => [
+                    ['hotel_name' => 'Makkah Grand', 'city' => 'Makkah', 'country' => 'Saudi Arabia', 'check_in' => now()->addMonths(2)->format('Y-m-d'), 'check_out' => now()->addMonths(2)->addDays(7)->format('Y-m-d'), 'room_type' => 'Quad', 'guests' => 2, 'board_basis' => 'breakfast'],
+                    ['hotel_name' => 'Madinah Plaza', 'city' => 'Madinah', 'country' => 'Saudi Arabia', 'check_in' => now()->addMonths(2)->addDays(7)->format('Y-m-d'), 'check_out' => now()->addMonths(2)->addDays(14)->format('Y-m-d'), 'room_type' => 'Quad', 'guests' => 2, 'board_basis' => 'half_board'],
+                ],
+                'itinerary' => [
+                    ['day_number' => 1, 'title' => 'Arrival at Jeddah, transfer to Makkah', 'city' => 'Makkah'],
+                    ['day_number' => 8, 'title' => 'Transfer to Madinah by high-speed rail', 'city' => 'Madinah'],
+                ],
+            ]),
+            $owner,
+        );
+        app(IssueBooking::class)->handle($umrah, null, now()->toDateString());
+        app(RaiseInvoiceForBooking::class)->handle($umrah->refresh(), $owner, now()->toDateString(), now()->addDays(14)->toDateString());
     }
 }
