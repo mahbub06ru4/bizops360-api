@@ -64,6 +64,18 @@ class Task extends Model
         return $this->hasMany(Task::class, 'parent_task_id');
     }
 
+    /** @return HasMany<TaskComment, $this> */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(TaskComment::class);
+    }
+
+    /** @return HasMany<TaskActivity, $this> */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(TaskActivity::class);
+    }
+
     /** @return BelongsTo<Employee, $this> */
     public function assigneeEmployee(): BelongsTo
     {
