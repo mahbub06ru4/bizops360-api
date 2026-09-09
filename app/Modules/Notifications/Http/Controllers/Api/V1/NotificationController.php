@@ -10,7 +10,6 @@ use App\Modules\Notifications\Http\Resources\NotificationResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Carbon;
 
 class NotificationController extends Controller
@@ -39,11 +38,13 @@ class NotificationController extends Controller
 
     public function markRead(Request $request, string $notification): NotificationResource
     {
-        /** @var DatabaseNotification $model */
-        $model = $this->user($request)->notifications()->whereKey($notification)->firstOrFail();
-        $model->markAsRead();
+        $user = $this->user($request);
 
-        return NotificationResource::make($model);
+        $user->notifications()->whereKey($notification)->firstOrFail()->markAsRead();
+
+        return NotificationResource::make(
+            $user->notifications()->whereKey($notification)->firstOrFail(),
+        );
     }
 
     public function markAllRead(Request $request): JsonResponse
