@@ -97,14 +97,20 @@ class TaskController extends Controller
     {
         $this->authorize('assign', $task);
 
-        return TaskResource::make($action->handle($task, $request->toData()));
+        /** @var User $user */
+        $user = $request->user();
+
+        return TaskResource::make($action->handle($task, $request->toData(), $user));
     }
 
     public function changeStatus(ChangeTaskStatusRequest $request, Task $task, ChangeTaskStatus $action): TaskResource
     {
         $this->authorize('update', $task);
 
-        return TaskResource::make($action->handle($task, $request->toData()));
+        /** @var User $user */
+        $user = $request->user();
+
+        return TaskResource::make($action->handle($task, $request->toData(), $user));
     }
 
     public function destroy(Task $task, DeleteTask $action): Response
