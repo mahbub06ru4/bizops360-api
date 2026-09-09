@@ -97,6 +97,18 @@ final class Roles
             'employee_document.view_all',
             'employee_document.upload',
             'employee_document.delete',
+
+            'project.view',
+            'project.create',
+            'project.update',
+            'project.delete',
+
+            'task.view',
+            'task.view_all',
+            'task.create',
+            'task.update',
+            'task.assign',
+            'task.delete',
         ];
     }
 
@@ -125,6 +137,9 @@ final class Roles
                 'attendance.record', 'attendance.manage_settings',
                 'employee_document.view', 'employee_document.view_all',
                 'employee_document.upload', 'employee_document.delete',
+                'project.view', 'project.create', 'project.update', 'project.delete',
+                'task.view', 'task.view_all', 'task.create', 'task.update',
+                'task.assign', 'task.delete',
             ],
             self::STAFF => [
                 'branch.view',
@@ -139,6 +154,10 @@ final class Roles
                 'attendance.view',
                 'attendance.check_in',
                 'employee_document.view',
+                'project.view',
+                'task.view',
+                'task.create',
+                'task.update',
             ],
         ];
     }

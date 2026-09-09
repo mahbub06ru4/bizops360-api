@@ -23,6 +23,7 @@ it('resolves explicit grants for manager and staff', function (): void {
             'holiday.view', 'leave_type.view', 'leave.view', 'leave.request',
             'attendance.view', 'attendance.check_in',
             'employee_document.view',
+            'project.view', 'task.view', 'task.create', 'task.update',
         ]);
 });
 
