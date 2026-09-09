@@ -6,6 +6,7 @@ namespace App\Modules\Operations\Actions;
 
 use App\Models\User;
 use App\Modules\Operations\Actions\Concerns\InteractsWithTenant;
+use App\Modules\Operations\Actions\Concerns\NotifiesTaskParticipants;
 use App\Modules\Operations\Data\TaskCommentData;
 use App\Modules\Operations\Models\Task;
 use App\Modules\Operations\Models\TaskActivity;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 class AddTaskComment
 {
     use InteractsWithTenant;
+    use NotifiesTaskParticipants;
 
     public function __construct(private readonly TenantContext $context) {}
 
@@ -42,6 +44,8 @@ class AddTaskComment
             $activity->task_id = (int) $task->getKey();
             $activity->causer_id = $author->getKey();
             $activity->save();
+
+            $this->notifyTaskEvent($task, 'commented', "New comment on \"{$task->title}\".", $author);
 
             return $comment->load('author');
         });
