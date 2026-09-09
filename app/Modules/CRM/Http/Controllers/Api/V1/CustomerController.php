@@ -6,10 +6,12 @@ namespace App\Modules\CRM\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\CRM\Actions\BuildCustomerHistory;
 use App\Modules\CRM\Actions\CreateCustomer;
 use App\Modules\CRM\Actions\DeleteCustomer;
 use App\Modules\CRM\Actions\UpdateCustomer;
 use App\Modules\CRM\Http\Requests\CustomerRequest;
+use App\Modules\CRM\Http\Resources\CustomerHistoryResource;
 use App\Modules\CRM\Http\Resources\CustomerResource;
 use App\Modules\CRM\Models\Customer;
 use App\Modules\Organization\Models\Employee;
@@ -63,6 +65,17 @@ class CustomerController extends Controller
         $this->authorize('view', $customer);
 
         return CustomerResource::make($customer->load('owner'));
+    }
+
+    /**
+     * The customer's full CRM history: profile, originating lead, contacts,
+     * follow-ups and activity timeline.
+     */
+    public function history(Customer $customer, BuildCustomerHistory $action): CustomerHistoryResource
+    {
+        $this->authorize('view', $customer);
+
+        return CustomerHistoryResource::make($action->handle($customer));
     }
 
     public function update(CustomerRequest $request, Customer $customer, UpdateCustomer $action): CustomerResource

@@ -130,6 +130,8 @@ final class Roles
             'follow_up.create',
             'follow_up.update',
             'follow_up.delete',
+
+            'crm.view_dashboard',
         ];
     }
 
@@ -166,7 +168,7 @@ final class Roles
                 'customer.view', 'customer.view_all', 'customer.create',
                 'customer.update', 'customer.delete',
                 'follow_up.view', 'follow_up.view_all', 'follow_up.create',
-                'follow_up.update', 'follow_up.delete',
+                'follow_up.update', 'follow_up.delete', 'crm.view_dashboard',
             ],
             self::STAFF => [
                 'branch.view',

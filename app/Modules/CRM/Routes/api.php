@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Middleware\ForceJsonResponse;
 use App\Modules\CRM\Http\Controllers\Api\V1\ContactController;
 use App\Modules\CRM\Http\Controllers\Api\V1\CrmActivityController;
+use App\Modules\CRM\Http\Controllers\Api\V1\CrmReportController;
 use App\Modules\CRM\Http\Controllers\Api\V1\CustomerController;
 use App\Modules\CRM\Http\Controllers\Api\V1\FollowUpController;
 use App\Modules\CRM\Http\Controllers\Api\V1\LeadController;
@@ -20,6 +21,9 @@ Route::prefix('api/v1')
         SubstituteBindings::class,
     ])
     ->group(function (): void {
+        Route::get('crm/overview', [CrmReportController::class, 'overview'])->name('crm.overview');
+        Route::get('crm/sales-performance', [CrmReportController::class, 'salesPerformance'])->name('crm.sales-performance');
+
         Route::get('leads/pipeline', [LeadController::class, 'pipeline'])->name('leads.pipeline');
         Route::put('leads/{lead}/stage', [LeadController::class, 'moveStage'])->name('leads.stage.update');
         Route::post('leads/{lead}/convert', [LeadController::class, 'convert'])->name('leads.convert');
@@ -37,6 +41,7 @@ Route::prefix('api/v1')
         Route::post('customers/{customer}/notes', [CrmActivityController::class, 'customerNote'])->name('customers.notes.store');
         Route::get('customers/{customer}/follow-ups', [FollowUpController::class, 'customerIndex'])->name('customers.follow-ups.index');
         Route::post('customers/{customer}/follow-ups', [FollowUpController::class, 'customerStore'])->name('customers.follow-ups.store');
+        Route::get('customers/{customer}/history', [CustomerController::class, 'history'])->name('customers.history');
         Route::apiResource('customers', CustomerController::class);
 
         Route::put('contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
