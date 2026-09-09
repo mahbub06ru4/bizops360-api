@@ -7,6 +7,21 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Modules\Authorization\Actions\ProvisionTenantRbac;
 use App\Modules\Authorization\Roles;
+use App\Modules\CRM\Actions\CreateCustomer;
+use App\Modules\CRM\Data\CustomerData;
+use App\Modules\Finance\Actions\CreateInvoice;
+use App\Modules\Finance\Actions\RecordExpense;
+use App\Modules\Finance\Actions\RecordIncome;
+use App\Modules\Finance\Actions\RecordInvoicePayment;
+use App\Modules\Finance\Actions\SendInvoice;
+use App\Modules\Finance\Data\ExpenseData;
+use App\Modules\Finance\Data\IncomeData;
+use App\Modules\Finance\Data\InvoiceData;
+use App\Modules\Finance\Data\InvoicePaymentData;
+use App\Modules\Finance\Domain\ExpenseCategory;
+use App\Modules\Finance\Domain\IncomeCategory;
+use App\Modules\Finance\Domain\PaymentMethod;
+use App\Modules\Finance\Models\Invoice;
 use App\Modules\Organization\Actions\CreateBranch;
 use App\Modules\Organization\Actions\CreateDepartment;
 use App\Modules\Organization\Actions\CreateDesignation;
@@ -110,8 +125,131 @@ class DemoSeeder extends Seeder
                 ));
             }
 
+            $this->seedFinance($tenant, $spec['slug']);
+
             $context->clear();
             $registrar->setPermissionsTeamId(null);
         }
+    }
+
+    /**
+     * A small slice of Finance demo data per tenant: a couple of expenses, one
+     * other-income entry, and two invoices for a demo customer — one paid in
+     * full, one part-paid.
+     */
+    private function seedFinance(Tenant $tenant, string $slug): void
+    {
+        if (Invoice::query()->where('tenant_id', $tenant->getKey())->exists()) {
+            return;
+        }
+
+        $owner = User::where('email', "owner@{$slug}.test")->first();
+
+        if ($owner === null) {
+            return;
+        }
+
+        $customer = app(CreateCustomer::class)->handle(
+            new CustomerData(
+                ownerEmployeeId: null,
+                name: Str::headline($slug).' Retail Client',
+                type: 'business',
+                company: null,
+                email: "client@{$slug}.test",
+                phone: null,
+                address: null,
+            ),
+            $owner,
+        );
+
+        app(RecordExpense::class)->handle(
+            new ExpenseData(
+                category: ExpenseCategory::Office,
+                employeeId: null,
+                supplierName: null,
+                title: 'Office rent',
+                amount: '1200.00',
+                spentOn: now()->startOfMonth()->format('Y-m-d'),
+                method: PaymentMethod::BankTransfer,
+                reference: null,
+                note: null,
+            ),
+            $owner,
+        );
+
+        app(RecordExpense::class)->handle(
+            new ExpenseData(
+                category: ExpenseCategory::Supplier,
+                employeeId: null,
+                supplierName: 'Acme Supplies',
+                title: 'Stationery and printing',
+                amount: '180.50',
+                spentOn: now()->subDays(10)->format('Y-m-d'),
+                method: PaymentMethod::Card,
+                reference: null,
+                note: null,
+            ),
+            $owner,
+        );
+
+        app(RecordIncome::class)->handle(
+            new IncomeData(
+                customerId: null,
+                category: IncomeCategory::Other,
+                source: 'Bank interest',
+                amount: '75.00',
+                receivedOn: now()->subDays(5)->format('Y-m-d'),
+                method: PaymentMethod::BankTransfer,
+                reference: null,
+                note: null,
+            ),
+            $owner,
+        );
+
+        $paidInvoice = app(CreateInvoice::class)->handle(
+            new InvoiceData(
+                customerId: $customer->getKey(),
+                issueDate: now()->subDays(20)->format('Y-m-d'),
+                dueDate: now()->subDays(6)->format('Y-m-d'),
+                amount: '2000.00',
+                notes: 'Consulting — March',
+            ),
+            $owner,
+        );
+        app(SendInvoice::class)->handle($paidInvoice);
+        app(RecordInvoicePayment::class)->handle(
+            $paidInvoice,
+            new InvoicePaymentData(
+                amount: '2000.00',
+                paidOn: now()->subDays(3)->format('Y-m-d'),
+                method: PaymentMethod::BankTransfer,
+                reference: null,
+                note: null,
+            ),
+            $owner,
+        );
+
+        $partInvoice = app(CreateInvoice::class)->handle(
+            new InvoiceData(
+                customerId: $customer->getKey(),
+                issueDate: now()->subDays(8)->format('Y-m-d'),
+                dueDate: now()->addDays(6)->format('Y-m-d'),
+                amount: '1500.00',
+                notes: 'Retainer — April',
+            ),
+            $owner,
+        );
+        app(SendInvoice::class)->handle($partInvoice);
+        app(RecordInvoicePayment::class)->handle(
+            $partInvoice,
+            new InvoicePaymentData(
+                amount: '500.00',
+                paidOn: now()->subDays(1)->format('Y-m-d'),
+                method: PaymentMethod::Cash,
+                reference: null,
+                note: null,
+            ),
+            $owner,
+        );
     }
 }
