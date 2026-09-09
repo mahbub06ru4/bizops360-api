@@ -19,8 +19,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $slug
  * @property string|null $industry
+ * @property string|null $legal_name
+ * @property string|null $email
+ * @property string|null $phone
+ * @property string|null $address
+ * @property string $timezone
+ * @property string $currency
  */
-#[Fillable(['name', 'slug', 'industry'])]
+#[Fillable(['name', 'slug', 'industry', 'legal_name', 'email', 'phone', 'address', 'timezone', 'currency'])]
 class Tenant extends Model
 {
     /** @use HasFactory<TenantFactory> */

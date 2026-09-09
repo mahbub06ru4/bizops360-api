@@ -60,6 +60,11 @@ final class Roles
             'employee.terminate',
             'employee.delete',
 
+            'team.view',
+            'team.create',
+            'team.update',
+            'team.delete',
+
             'user.view',
             'user.create',
             'user.update',
@@ -85,6 +90,7 @@ final class Roles
                 'department.view', 'department.create', 'department.update',
                 'designation.view', 'designation.create', 'designation.update',
                 'employee.view', 'employee.create', 'employee.update', 'employee.terminate',
+                'team.view', 'team.create', 'team.update',
                 'user.view', 'role.view',
             ],
             self::STAFF => [
@@ -92,6 +98,7 @@ final class Roles
                 'department.view',
                 'designation.view',
                 'employee.view',
+                'team.view',
             ],
         ];
     }

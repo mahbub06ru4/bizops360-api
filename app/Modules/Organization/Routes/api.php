@@ -7,6 +7,7 @@ use App\Modules\Organization\Http\Controllers\Api\V1\DepartmentController;
 use App\Modules\Organization\Http\Controllers\Api\V1\DesignationController;
 use App\Modules\Organization\Http\Controllers\Api\V1\EmployeeController;
 use App\Modules\Organization\Http\Controllers\Api\V1\RoleController;
+use App\Modules\Organization\Http\Controllers\Api\V1\TeamController;
 use App\Modules\Organization\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,9 @@ Route::prefix('api/v1')
         Route::post('employees/{employee}/terminate', [EmployeeController::class, 'terminate'])
             ->name('employees.terminate');
         Route::apiResource('employees', EmployeeController::class);
+
+        Route::put('teams/{team}/members', [TeamController::class, 'setMembers'])->name('teams.members.update');
+        Route::apiResource('teams', TeamController::class);
 
         Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
 
