@@ -21,6 +21,7 @@ it('resolves explicit grants for manager and staff', function (): void {
         ->toBe([
             'branch.view', 'department.view', 'designation.view', 'employee.view', 'team.view',
             'holiday.view', 'leave_type.view', 'leave.view', 'leave.request',
+            'attendance.view', 'attendance.check_in',
         ]);
 });
 

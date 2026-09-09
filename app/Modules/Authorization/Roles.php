@@ -86,6 +86,12 @@ final class Roles
             'leave.request',
             'leave.approve',
             'leave.manage_balance',
+
+            'attendance.view',
+            'attendance.view_all',
+            'attendance.check_in',
+            'attendance.record',
+            'attendance.manage_settings',
         ];
     }
 
@@ -110,6 +116,8 @@ final class Roles
                 'holiday.view', 'holiday.create', 'holiday.update',
                 'leave_type.view', 'leave_type.create', 'leave_type.update',
                 'leave.view', 'leave.request', 'leave.approve', 'leave.manage_balance',
+                'attendance.view', 'attendance.view_all', 'attendance.check_in',
+                'attendance.record', 'attendance.manage_settings',
             ],
             self::STAFF => [
                 'branch.view',
@@ -121,6 +129,8 @@ final class Roles
                 'leave_type.view',
                 'leave.view',
                 'leave.request',
+                'attendance.view',
+                'attendance.check_in',
             ],
         ];
     }

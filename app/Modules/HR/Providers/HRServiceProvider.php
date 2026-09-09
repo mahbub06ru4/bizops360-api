@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\HR\Providers;
 
+use App\Modules\HR\Models\Attendance;
+use App\Modules\HR\Models\AttendanceSetting;
 use App\Modules\HR\Models\Holiday;
 use App\Modules\HR\Models\LeaveBalance;
 use App\Modules\HR\Models\LeaveRequest;
 use App\Modules\HR\Models\LeaveType;
+use App\Modules\HR\Policies\AttendancePolicy;
+use App\Modules\HR\Policies\AttendanceSettingPolicy;
 use App\Modules\HR\Policies\HolidayPolicy;
 use App\Modules\HR\Policies\LeaveBalancePolicy;
 use App\Modules\HR\Policies\LeaveRequestPolicy;
@@ -26,5 +30,7 @@ class HRServiceProvider extends ServiceProvider
         Gate::policy(LeaveType::class, LeaveTypePolicy::class);
         Gate::policy(LeaveRequest::class, LeaveRequestPolicy::class);
         Gate::policy(LeaveBalance::class, LeaveBalancePolicy::class);
+        Gate::policy(Attendance::class, AttendancePolicy::class);
+        Gate::policy(AttendanceSetting::class, AttendanceSettingPolicy::class);
     }
 }

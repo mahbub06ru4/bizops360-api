@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\ForceJsonResponse;
+use App\Modules\HR\Http\Controllers\Api\V1\AttendanceController;
+use App\Modules\HR\Http\Controllers\Api\V1\AttendanceSettingController;
 use App\Modules\HR\Http\Controllers\Api\V1\HolidayController;
 use App\Modules\HR\Http\Controllers\Api\V1\LeaveBalanceController;
 use App\Modules\HR\Http\Controllers\Api\V1\LeaveRequestController;
@@ -35,4 +37,14 @@ Route::prefix('api/v1')
 
         Route::get('leave-balances', [LeaveBalanceController::class, 'index'])->name('leave-balances.index');
         Route::put('leave-balances', [LeaveBalanceController::class, 'upsert'])->name('leave-balances.upsert');
+
+        Route::post('attendance/check-in', [AttendanceController::class, 'checkIn'])->name('attendance.check-in');
+        Route::post('attendance/check-out', [AttendanceController::class, 'checkOut'])->name('attendance.check-out');
+        Route::get('attendance/summary', [AttendanceController::class, 'summary'])->name('attendance.summary');
+        Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+        Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');
+        Route::get('attendance/{attendance}', [AttendanceController::class, 'show'])->name('attendance.show');
+
+        Route::get('attendance-settings', [AttendanceSettingController::class, 'show'])->name('attendance-settings.show');
+        Route::put('attendance-settings', [AttendanceSettingController::class, 'update'])->name('attendance-settings.update');
     });
