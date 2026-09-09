@@ -28,5 +28,6 @@ class CustomerObserver
     {
         $customer->contacts()->delete();
         $customer->activities()->delete();
+        $customer->followups()->delete();
     }
 }

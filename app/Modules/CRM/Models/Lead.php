@@ -75,6 +75,12 @@ class Lead extends Model
         return $this->morphMany(CrmActivity::class, 'subject');
     }
 
+    /** @return MorphMany<FollowUp, $this> */
+    public function followups(): MorphMany
+    {
+        return $this->morphMany(FollowUp::class, 'followupable');
+    }
+
     /**
      * @return array<string, string>
      */
