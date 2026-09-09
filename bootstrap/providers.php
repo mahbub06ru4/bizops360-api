@@ -3,6 +3,7 @@
 declare(strict_types=1);
 use App\Modules\HR\Providers\HRServiceProvider;
 use App\Modules\Identity\Providers\IdentityServiceProvider;
+use App\Modules\Operations\Providers\OperationsServiceProvider;
 use App\Modules\Organization\Providers\OrganizationServiceProvider;
 use App\Modules\Tenant\Providers\TenantServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -13,4 +14,5 @@ return [
     IdentityServiceProvider::class,
     OrganizationServiceProvider::class,
     HRServiceProvider::class,
+    OperationsServiceProvider::class,
 ];
