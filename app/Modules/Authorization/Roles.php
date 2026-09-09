@@ -38,6 +38,21 @@ final class Roles
         return [
             'tenant.settings.view',
             'tenant.settings.update',
+
+            'branch.view',
+            'branch.create',
+            'branch.update',
+            'branch.delete',
+
+            'department.view',
+            'department.create',
+            'department.update',
+            'department.delete',
+
+            'designation.view',
+            'designation.create',
+            'designation.update',
+            'designation.delete',
         ];
     }
 
@@ -51,8 +66,17 @@ final class Roles
         return [
             self::OWNER => ['*'],
             self::ADMIN => ['*'],
-            self::MANAGER => ['tenant.settings.view'],
-            self::STAFF => [],
+            self::MANAGER => [
+                'tenant.settings.view',
+                'branch.view', 'branch.create', 'branch.update',
+                'department.view', 'department.create', 'department.update',
+                'designation.view', 'designation.create', 'designation.update',
+            ],
+            self::STAFF => [
+                'branch.view',
+                'department.view',
+                'designation.view',
+            ],
         ];
     }
 

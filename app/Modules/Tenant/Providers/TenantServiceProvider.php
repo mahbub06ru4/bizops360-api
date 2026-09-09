@@ -6,6 +6,7 @@ namespace App\Modules\Tenant\Providers;
 
 use App\Modules\Tenant\Context\TenantContext;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Permission\PermissionRegistrar;
 
 class TenantServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,7 @@ class TenantServiceProvider extends ServiceProvider
         // Reset the bound tenant between queue jobs / octane requests.
         $this->app->terminating(function (): void {
             $this->app->make(TenantContext::class)->clear();
+            $this->app->make(PermissionRegistrar::class)->setPermissionsTeamId(null);
         });
     }
 }
