@@ -61,7 +61,7 @@ it('reports sales performance per owner employee', function (): void {
         ->and($data[0]['converted_leads'])->toBe(1)
         ->and($data[0]['lost_leads'])->toBe(1)
         ->and($data[0]['open_leads'])->toBe(1)
-        ->and($data[0]['win_rate'])->toBe(50.0)
+        ->and($data[0]['win_rate'])->toEqual(50.0)
         ->and($data[0]['converted_value'])->toBe('8000.00')
         ->and($data[0]['customers'])->toBe(1);
 });
