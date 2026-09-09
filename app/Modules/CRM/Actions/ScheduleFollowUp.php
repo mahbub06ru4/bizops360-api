@@ -7,6 +7,7 @@ namespace App\Modules\CRM\Actions;
 use App\Models\User;
 use App\Modules\CRM\Actions\Concerns\InteractsWithTenant;
 use App\Modules\CRM\Data\FollowUpData;
+use App\Modules\CRM\Domain\FollowUpStatus;
 use App\Modules\CRM\Models\FollowUp;
 use App\Modules\CRM\Support\RecordsCrmActivity;
 use App\Modules\Organization\Models\Employee;
@@ -35,6 +36,7 @@ class ScheduleFollowUp
             $followUp->followupable_type = $followupable->getMorphClass();
             $followUp->followupable_id = (int) $followupable->getKey();
             $followUp->created_by = $creator->getKey();
+            $followUp->status = FollowUpStatus::Pending;
             $followUp->save();
 
             $this->recordCrmActivity(
