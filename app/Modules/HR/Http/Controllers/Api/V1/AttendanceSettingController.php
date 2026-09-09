@@ -10,6 +10,7 @@ use App\Modules\HR\Domain\WorkSchedule;
 use App\Modules\HR\Http\Requests\AttendanceSettingRequest;
 use App\Modules\HR\Http\Resources\AttendanceSettingResource;
 use App\Modules\HR\Models\AttendanceSetting;
+use Illuminate\Http\JsonResponse;
 
 class AttendanceSettingController extends Controller
 {
@@ -33,10 +34,13 @@ class AttendanceSettingController extends Controller
     /**
      * Create or update the working-hours configuration.
      */
-    public function update(AttendanceSettingRequest $request, UpdateAttendanceSetting $action): AttendanceSettingResource
+    public function update(AttendanceSettingRequest $request, UpdateAttendanceSetting $action): JsonResponse
     {
         $this->authorize('manage', AttendanceSetting::class);
 
-        return AttendanceSettingResource::make($action->handle($request->toData()));
+        // PUT is an idempotent upsert — always 200, even on the first (creating) call.
+        return AttendanceSettingResource::make($action->handle($request->toData()))
+            ->response()
+            ->setStatusCode(200);
     }
 }
