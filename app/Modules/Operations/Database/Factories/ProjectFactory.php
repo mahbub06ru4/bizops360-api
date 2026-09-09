@@ -27,7 +27,7 @@ class ProjectFactory extends Factory
             'department_id' => null,
             'lead_employee_id' => null,
             'created_by' => null,
-            'name' => fake()->catchPhrase(),
+            'name' => fake()->sentence(3),
             'code' => Str::upper(Str::random(6)),
             'description' => fake()->optional()->sentence(),
             'status' => ProjectStatus::Active,
