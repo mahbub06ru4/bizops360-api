@@ -43,7 +43,7 @@ class NotificationController extends Controller
         $model = $this->user($request)->notifications()->whereKey($notification)->firstOrFail();
         $model->markAsRead();
 
-        return NotificationResource::make($model->fresh() ?? $model);
+        return NotificationResource::make($model);
     }
 
     public function markAllRead(Request $request): JsonResponse
