@@ -124,6 +124,12 @@ final class Roles
             'customer.create',
             'customer.update',
             'customer.delete',
+
+            'follow_up.view',
+            'follow_up.view_all',
+            'follow_up.create',
+            'follow_up.update',
+            'follow_up.delete',
         ];
     }
 
@@ -159,6 +165,8 @@ final class Roles
                 'lead.delete', 'lead.convert',
                 'customer.view', 'customer.view_all', 'customer.create',
                 'customer.update', 'customer.delete',
+                'follow_up.view', 'follow_up.view_all', 'follow_up.create',
+                'follow_up.update', 'follow_up.delete',
             ],
             self::STAFF => [
                 'branch.view',
@@ -183,6 +191,9 @@ final class Roles
                 'customer.view',
                 'customer.create',
                 'customer.update',
+                'follow_up.view',
+                'follow_up.create',
+                'follow_up.update',
             ],
         ];
     }

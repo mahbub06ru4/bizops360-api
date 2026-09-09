@@ -70,6 +70,12 @@ class Customer extends Model
         return $this->morphMany(CrmActivity::class, 'subject');
     }
 
+    /** @return MorphMany<FollowUp, $this> */
+    public function followups(): MorphMany
+    {
+        return $this->morphMany(FollowUp::class, 'followupable');
+    }
+
     protected static function newFactory(): CustomerFactory
     {
         return CustomerFactory::new();

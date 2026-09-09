@@ -26,6 +26,7 @@ it('resolves explicit grants for manager and staff', function (): void {
             'project.view', 'task.view', 'task.create', 'task.update',
             'lead.view', 'lead.create', 'lead.update',
             'customer.view', 'customer.create', 'customer.update',
+            'follow_up.view', 'follow_up.create', 'follow_up.update',
         ]);
 });
 

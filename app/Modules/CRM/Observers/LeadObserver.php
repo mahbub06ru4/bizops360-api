@@ -38,6 +38,7 @@ class LeadObserver
     {
         $lead->contacts()->delete();
         $lead->activities()->delete();
+        $lead->followups()->delete();
     }
 
     private function causerId(): ?int
