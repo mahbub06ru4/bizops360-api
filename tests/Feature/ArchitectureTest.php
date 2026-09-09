@@ -31,11 +31,21 @@ arch('tenant DTOs are readonly')
     ->expect('App\Modules\Tenant\Data')
     ->toBeReadonly();
 
+arch('hr actions are use cases with a handle() method')
+    ->expect('App\Modules\HR\Actions')
+    ->toHaveMethod('handle')
+    ->ignoring('App\Modules\HR\Actions\Concerns');
+
+arch('hr DTOs are readonly')
+    ->expect('App\Modules\HR\Data')
+    ->toBeReadonly();
+
 arch('controllers do not use the DB facade directly')
     ->expect('Illuminate\Support\Facades\DB')
     ->not->toBeUsedIn('App\Modules\Identity\Http\Controllers')
     ->not->toBeUsedIn('App\Modules\Organization\Http\Controllers')
-    ->not->toBeUsedIn('App\Modules\Tenant\Http\Controllers');
+    ->not->toBeUsedIn('App\Modules\Tenant\Http\Controllers')
+    ->not->toBeUsedIn('App\Modules\HR\Http\Controllers');
 
 arch('strict types everywhere in the modules')
     ->expect('App\Modules')

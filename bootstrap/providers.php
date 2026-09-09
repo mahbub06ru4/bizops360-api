@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Modules\HR\Providers\HRServiceProvider;
 use App\Modules\Identity\Providers\IdentityServiceProvider;
 use App\Modules\Organization\Providers\OrganizationServiceProvider;
 use App\Modules\Tenant\Providers\TenantServiceProvider;
@@ -11,4 +12,5 @@ return [
     TenantServiceProvider::class,
     IdentityServiceProvider::class,
     OrganizationServiceProvider::class,
+    HRServiceProvider::class,
 ];
