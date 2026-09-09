@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Middleware\ForceJsonResponse;
 use App\Modules\HR\Http\Controllers\Api\V1\AttendanceController;
 use App\Modules\HR\Http\Controllers\Api\V1\AttendanceSettingController;
+use App\Modules\HR\Http\Controllers\Api\V1\EmployeeDocumentController;
+use App\Modules\HR\Http\Controllers\Api\V1\EmployeeDocumentDownloadController;
 use App\Modules\HR\Http\Controllers\Api\V1\HolidayController;
 use App\Modules\HR\Http\Controllers\Api\V1\LeaveBalanceController;
 use App\Modules\HR\Http\Controllers\Api\V1\LeaveRequestController;
@@ -47,4 +49,11 @@ Route::prefix('api/v1')
 
         Route::get('attendance-settings', [AttendanceSettingController::class, 'show'])->name('attendance-settings.show');
         Route::put('attendance-settings', [AttendanceSettingController::class, 'update'])->name('attendance-settings.update');
+
+        Route::get('employee-documents/{employeeDocument}/file', EmployeeDocumentDownloadController::class)
+            ->middleware('signed')
+            ->name('api.v1.employee-documents.file');
+        Route::apiResource('employee-documents', EmployeeDocumentController::class)
+            ->only(['index', 'store', 'show', 'destroy'])
+            ->parameters(['employee-documents' => 'employeeDocument']);
     });
