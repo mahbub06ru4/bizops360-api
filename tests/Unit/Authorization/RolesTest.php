@@ -18,7 +18,7 @@ it('resolves explicit grants for manager and staff', function (): void {
         ->toContain('tenant.settings.view', 'branch.create', 'department.update')
         ->not->toContain('branch.delete')
         ->and(Roles::permissionsFor(Roles::STAFF))
-        ->toBe(['branch.view', 'department.view', 'designation.view']);
+        ->toBe(['branch.view', 'department.view', 'designation.view', 'employee.view']);
 });
 
 it('keeps every explicit grant within the known permission catalogue', function (): void {

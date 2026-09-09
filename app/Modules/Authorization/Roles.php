@@ -53,6 +53,19 @@ final class Roles
             'designation.create',
             'designation.update',
             'designation.delete',
+
+            'employee.view',
+            'employee.create',
+            'employee.update',
+            'employee.terminate',
+            'employee.delete',
+
+            'user.view',
+            'user.create',
+            'user.update',
+            'user.assign_roles',
+            'user.delete',
+            'role.view',
         ];
     }
 
@@ -71,11 +84,14 @@ final class Roles
                 'branch.view', 'branch.create', 'branch.update',
                 'department.view', 'department.create', 'department.update',
                 'designation.view', 'designation.create', 'designation.update',
+                'employee.view', 'employee.create', 'employee.update', 'employee.terminate',
+                'user.view', 'role.view',
             ],
             self::STAFF => [
                 'branch.view',
                 'department.view',
                 'designation.view',
+                'employee.view',
             ],
         ];
     }

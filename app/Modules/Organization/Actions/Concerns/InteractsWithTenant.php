@@ -31,4 +31,27 @@ trait InteractsWithTenant
             throw (new ModelNotFoundException)->setModel($model::class, [$model->getKey()]);
         }
     }
+
+    /**
+     * Load a referenced record by id and assert it belongs to the current tenant.
+     * A null id is a no-op (the reference is optional).
+     *
+     * @param  class-string<Model>  $modelClass
+     */
+    protected function assertReferenceOwned(?int $id, string $modelClass): void
+    {
+        if ($id === null) {
+            return;
+        }
+
+        $instance = new $modelClass;
+        /** @var Model|null $found */
+        $found = $instance->newQuery()->find($id);
+
+        if ($found === null) {
+            throw (new ModelNotFoundException)->setModel($modelClass, [$id]);
+        }
+
+        $this->assertTenantOwns($found);
+    }
 }
