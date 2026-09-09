@@ -76,6 +76,12 @@ class Task extends Model
         return $this->hasMany(TaskActivity::class);
     }
 
+    /** @return HasMany<TaskAttachment, $this> */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(TaskAttachment::class);
+    }
+
     /** @return BelongsTo<Employee, $this> */
     public function assigneeEmployee(): BelongsTo
     {
