@@ -13,7 +13,6 @@ use App\Modules\CRM\Models\Customer;
 use App\Modules\CRM\Models\Lead;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CrmActivityController extends Controller
