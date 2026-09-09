@@ -27,7 +27,7 @@ class NotificationResource extends JsonResource
         return [
             'id' => $notification->getAttribute('id'),
             'type' => class_basename((string) $notification->getAttribute('type')),
-            'data' => $notification->getAttribute('data'),
+            'payload' => $notification->getAttribute('data'),
             'read_at' => $readAt?->toIso8601String(),
             'created_at' => $createdAt?->toIso8601String(),
         ];

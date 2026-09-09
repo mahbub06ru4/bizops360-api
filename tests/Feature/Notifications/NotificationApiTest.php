@@ -34,7 +34,7 @@ it('lists notifications and reports the unread count', function (): void {
     $this->actingAs($user, 'sanctum')->getJson('/api/v1/notifications')
         ->assertOk()
         ->assertJsonPath('meta.total', 2)
-        ->assertJsonStructure(['data' => [['id', 'type', 'data', 'read_at', 'created_at']]]);
+        ->assertJsonStructure(['data' => [['id', 'type', 'payload', 'read_at', 'created_at']]]);
 
     $this->actingAs($user, 'sanctum')->getJson('/api/v1/notifications/unread-count')
         ->assertOk()->assertJsonPath('data.unread', 2);
