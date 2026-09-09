@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -55,6 +56,18 @@ class Customer extends Model
     public function sourceLead(): HasOne
     {
         return $this->hasOne(Lead::class, 'converted_customer_id');
+    }
+
+    /** @return MorphMany<Contact, $this> */
+    public function contacts(): MorphMany
+    {
+        return $this->morphMany(Contact::class, 'contactable');
+    }
+
+    /** @return MorphMany<CrmActivity, $this> */
+    public function activities(): MorphMany
+    {
+        return $this->morphMany(CrmActivity::class, 'subject');
     }
 
     protected static function newFactory(): CustomerFactory
