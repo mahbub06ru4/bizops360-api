@@ -6,9 +6,11 @@ namespace App\Modules\Operations\Providers;
 
 use App\Modules\Operations\Models\Project;
 use App\Modules\Operations\Models\Task;
+use App\Modules\Operations\Models\TaskAttachment;
 use App\Modules\Operations\Models\TaskComment;
 use App\Modules\Operations\Observers\TaskObserver;
 use App\Modules\Operations\Policies\ProjectPolicy;
+use App\Modules\Operations\Policies\TaskAttachmentPolicy;
 use App\Modules\Operations\Policies\TaskCommentPolicy;
 use App\Modules\Operations\Policies\TaskPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +26,7 @@ class OperationsServiceProvider extends ServiceProvider
         Gate::policy(Project::class, ProjectPolicy::class);
         Gate::policy(Task::class, TaskPolicy::class);
         Gate::policy(TaskComment::class, TaskCommentPolicy::class);
+        Gate::policy(TaskAttachment::class, TaskAttachmentPolicy::class);
 
         Task::observe(TaskObserver::class);
     }
