@@ -132,6 +132,27 @@ final class Roles
             'follow_up.delete',
 
             'crm.view_dashboard',
+
+            'income.view',
+            'income.create',
+            'income.update',
+            'income.delete',
+
+            'expense.view',
+            'expense.create',
+            'expense.update',
+            'expense.delete',
+
+            'invoice.view',
+            'invoice.create',
+            'invoice.update',
+            'invoice.delete',
+            'invoice.send',
+            'invoice.void',
+            'invoice.record_payment',
+            'invoice.refund',
+
+            'finance.view_reports',
         ];
     }
 
@@ -169,6 +190,10 @@ final class Roles
                 'customer.update', 'customer.delete',
                 'follow_up.view', 'follow_up.view_all', 'follow_up.create',
                 'follow_up.update', 'follow_up.delete', 'crm.view_dashboard',
+                'income.view', 'income.create', 'income.update',
+                'expense.view', 'expense.create', 'expense.update',
+                'invoice.view', 'invoice.create', 'invoice.update',
+                'invoice.send', 'invoice.record_payment', 'finance.view_reports',
             ],
             self::STAFF => [
                 'branch.view',

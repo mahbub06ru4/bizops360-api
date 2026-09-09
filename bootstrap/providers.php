@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 use App\Modules\CRM\Providers\CRMServiceProvider;
+use App\Modules\Finance\Providers\FinanceServiceProvider;
 use App\Modules\HR\Providers\HRServiceProvider;
 use App\Modules\Identity\Providers\IdentityServiceProvider;
 use App\Modules\Notifications\Providers\NotificationsServiceProvider;
@@ -19,4 +20,5 @@ return [
     OperationsServiceProvider::class,
     NotificationsServiceProvider::class,
     CRMServiceProvider::class,
+    FinanceServiceProvider::class,
 ];
