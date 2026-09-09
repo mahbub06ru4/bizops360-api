@@ -11,7 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Notifications\DatabaseNotification;
-use Illuminate\Notifications\DatabaseNotificationCollection;
+use Illuminate\Support\Carbon;
 
 class NotificationController extends Controller
 {
@@ -48,9 +48,7 @@ class NotificationController extends Controller
 
     public function markAllRead(Request $request): JsonResponse
     {
-        /** @var DatabaseNotificationCollection $unread */
-        $unread = $this->user($request)->unreadNotifications;
-        $unread->markAsRead();
+        $this->user($request)->unreadNotifications()->update(['read_at' => Carbon::now()]);
 
         return response()->json(['message' => 'All notifications marked as read.']);
     }
