@@ -71,6 +71,21 @@ final class Roles
             'user.assign_roles',
             'user.delete',
             'role.view',
+
+            'holiday.view',
+            'holiday.create',
+            'holiday.update',
+            'holiday.delete',
+
+            'leave_type.view',
+            'leave_type.create',
+            'leave_type.update',
+            'leave_type.delete',
+
+            'leave.view',
+            'leave.request',
+            'leave.approve',
+            'leave.manage_balance',
         ];
     }
 
@@ -92,6 +107,9 @@ final class Roles
                 'employee.view', 'employee.create', 'employee.update', 'employee.terminate',
                 'team.view', 'team.create', 'team.update',
                 'user.view', 'role.view',
+                'holiday.view', 'holiday.create', 'holiday.update',
+                'leave_type.view', 'leave_type.create', 'leave_type.update',
+                'leave.view', 'leave.request', 'leave.approve', 'leave.manage_balance',
             ],
             self::STAFF => [
                 'branch.view',
@@ -99,6 +117,10 @@ final class Roles
                 'designation.view',
                 'employee.view',
                 'team.view',
+                'holiday.view',
+                'leave_type.view',
+                'leave.view',
+                'leave.request',
             ],
         ];
     }
