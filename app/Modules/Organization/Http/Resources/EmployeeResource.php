@@ -26,7 +26,7 @@ class EmployeeResource extends JsonResource
             'full_name' => $this->full_name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'hire_date' => $this->hire_date?->format('Y-m-d'),
+            'hire_date' => $this->hire_date->format('Y-m-d'),
             'employment_status' => $this->employment_status->value,
             'user_id' => $this->user_id,
             'branch_id' => $this->branch_id,

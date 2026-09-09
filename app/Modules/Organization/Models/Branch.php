@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * A physical or organizational branch of a tenant company.
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $phone
  * @property string|null $email
  * @property bool $is_head_office
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 #[Fillable(['name', 'code', 'address', 'phone', 'email', 'is_head_office'])]
 class Branch extends Model

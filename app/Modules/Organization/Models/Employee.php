@@ -33,6 +33,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $hire_date
  * @property EmploymentStatus $employment_status
  * @property-read string $full_name
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 #[Fillable([
     'user_id', 'branch_id', 'department_id', 'designation_id',

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * A job title / designation within a tenant, optionally scoped to a department.
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $department_id
  * @property string $title
  * @property int|null $rank
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 #[Fillable(['department_id', 'title', 'rank'])]
 class Designation extends Model

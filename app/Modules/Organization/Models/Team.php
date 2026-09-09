@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Carbon;
 
 /**
  * A named group of employees within a tenant, optionally led by one of them.
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property int|null $lead_employee_id
  * @property string $name
  * @property string|null $description
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 #[Fillable(['lead_employee_id', 'name', 'description'])]
 class Team extends Model

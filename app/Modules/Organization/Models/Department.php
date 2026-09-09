@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * A department within a tenant, optionally attached to a branch.
@@ -21,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $code
  * @property string|null $description
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 #[Fillable(['branch_id', 'name', 'code', 'description'])]
 class Department extends Model
