@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Organization\Data;
 
+use App\Modules\Organization\Models\Branch;
+
 /**
- * Application input for creating or updating a {@see \App\Modules\Organization\Models\Branch}.
+ * Application input for creating or updating a {@see Branch}.
  */
 final readonly class BranchData
 {

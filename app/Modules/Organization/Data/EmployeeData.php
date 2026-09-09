@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Organization\Data;
 
 use App\Modules\Organization\Domain\EmploymentStatus;
+use App\Modules\Organization\Models\Employee;
 
 /**
- * Application input for creating or updating an {@see \App\Modules\Organization\Models\Employee}.
+ * Application input for creating or updating an {@see Employee}.
  */
 final readonly class EmployeeData
 {

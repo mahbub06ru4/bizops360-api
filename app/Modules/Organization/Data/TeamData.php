@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Organization\Data;
 
+use App\Modules\Organization\Models\Team;
+
 /**
- * Application input for creating or updating a {@see \App\Modules\Organization\Models\Team}.
+ * Application input for creating or updating a {@see Team}.
  */
 final readonly class TeamData
 {

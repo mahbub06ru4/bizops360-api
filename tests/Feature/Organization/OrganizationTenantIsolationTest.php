@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Modules\Organization\Actions\UpdateDepartment;
+use App\Modules\Organization\Data\DepartmentData;
 use App\Modules\Organization\Models\Branch;
 use App\Modules\Organization\Models\Department;
+use App\Modules\Tenant\Context\TenantContext;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 it('hides another tenant\'s branch from index and returns 404 on direct access', function (): void {
     $tenantA = makeTenant(['slug' => 'iso-org-a']);
@@ -37,15 +41,15 @@ it('will not attach a department to another tenant\'s branch even if validation 
     clearTenantContext();
 
     // Re-bind tenant A and drive the action directly with a foreign branch id.
-    app(App\Modules\Tenant\Context\TenantContext::class)->set($tenantA->fresh());
+    app(TenantContext::class)->set($tenantA->fresh());
 
-    expect(fn () => app(App\Modules\Organization\Actions\UpdateDepartment::class)->handle(
+    expect(fn () => app(UpdateDepartment::class)->handle(
         $mine,
-        new App\Modules\Organization\Data\DepartmentData(
+        new DepartmentData(
             branchId: $foreignBranch->id,
             name: $mine->name,
             code: $mine->code,
             description: null,
         ),
-    ))->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+    ))->toThrow(ModelNotFoundException::class);
 });
