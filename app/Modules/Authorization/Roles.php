@@ -111,6 +111,19 @@ final class Roles
             'task.delete',
 
             'operations.view_dashboard',
+
+            'lead.view',
+            'lead.view_all',
+            'lead.create',
+            'lead.update',
+            'lead.delete',
+            'lead.convert',
+
+            'customer.view',
+            'customer.view_all',
+            'customer.create',
+            'customer.update',
+            'customer.delete',
         ];
     }
 
@@ -142,6 +155,10 @@ final class Roles
                 'project.view', 'project.create', 'project.update', 'project.delete',
                 'task.view', 'task.view_all', 'task.create', 'task.update',
                 'task.assign', 'task.delete', 'operations.view_dashboard',
+                'lead.view', 'lead.view_all', 'lead.create', 'lead.update',
+                'lead.delete', 'lead.convert',
+                'customer.view', 'customer.view_all', 'customer.create',
+                'customer.update', 'customer.delete',
             ],
             self::STAFF => [
                 'branch.view',
@@ -160,6 +177,12 @@ final class Roles
                 'task.view',
                 'task.create',
                 'task.update',
+                'lead.view',
+                'lead.create',
+                'lead.update',
+                'customer.view',
+                'customer.create',
+                'customer.update',
             ],
         ];
     }

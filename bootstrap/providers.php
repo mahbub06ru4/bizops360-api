@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Modules\CRM\Providers\CRMServiceProvider;
 use App\Modules\HR\Providers\HRServiceProvider;
 use App\Modules\Identity\Providers\IdentityServiceProvider;
 use App\Modules\Notifications\Providers\NotificationsServiceProvider;
@@ -17,4 +18,5 @@ return [
     HRServiceProvider::class,
     OperationsServiceProvider::class,
     NotificationsServiceProvider::class,
+    CRMServiceProvider::class,
 ];
