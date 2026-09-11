@@ -6,9 +6,12 @@ namespace App\Modules\Finance\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\Finance\Actions\ApproveExpense;
 use App\Modules\Finance\Actions\DeleteExpense;
 use App\Modules\Finance\Actions\RecordExpense;
+use App\Modules\Finance\Actions\RejectExpense;
 use App\Modules\Finance\Actions\UpdateExpense;
+use App\Modules\Finance\Http\Requests\ExpenseDecisionRequest;
 use App\Modules\Finance\Http\Requests\ExpenseRequest;
 use App\Modules\Finance\Http\Resources\ExpenseResource;
 use App\Modules\Finance\Models\Expense;
@@ -31,6 +34,10 @@ class ExpenseController extends Controller
 
         if ($request->filled('employee_id')) {
             $query->where('employee_id', $request->integer('employee_id'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status')->toString());
         }
 
         return ExpenseResource::collection($query->paginate());
@@ -68,5 +75,25 @@ class ExpenseController extends Controller
         $action->handle($expense);
 
         return response()->noContent();
+    }
+
+    public function approve(ExpenseDecisionRequest $request, Expense $expense, ApproveExpense $action): ExpenseResource
+    {
+        $this->authorize('decide', $expense);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        return ExpenseResource::make($action->handle($expense, $user, $request->toData()));
+    }
+
+    public function reject(ExpenseDecisionRequest $request, Expense $expense, RejectExpense $action): ExpenseResource
+    {
+        $this->authorize('decide', $expense);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        return ExpenseResource::make($action->handle($expense, $user, $request->toData()));
     }
 }

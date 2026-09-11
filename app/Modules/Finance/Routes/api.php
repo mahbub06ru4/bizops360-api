@@ -26,6 +26,9 @@ Route::prefix('api/v1')
         Route::get('finance/monthly', [FinanceReportController::class, 'monthly'])->name('finance.monthly');
 
         Route::apiResource('incomes', IncomeController::class);
+
+        Route::post('expenses/{expense}/approve', [ExpenseController::class, 'approve'])->name('expenses.approve');
+        Route::post('expenses/{expense}/reject', [ExpenseController::class, 'reject'])->name('expenses.reject');
         Route::apiResource('expenses', ExpenseController::class);
 
         Route::get('invoices/{invoice}/payments', [InvoiceController::class, 'payments'])->name('invoices.payments.index');

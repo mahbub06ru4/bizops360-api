@@ -34,6 +34,11 @@ class ExpensePolicy
         return $user->can('expense.delete') && $this->sameTenant($user, $expense);
     }
 
+    public function decide(User $user, Expense $expense): bool
+    {
+        return $user->can('expense.approve') && $this->sameTenant($user, $expense);
+    }
+
     private function sameTenant(User $user, Expense $expense): bool
     {
         return $user->tenant_id !== null && $user->tenant_id === $expense->tenant_id;

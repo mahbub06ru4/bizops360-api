@@ -11,6 +11,7 @@ use App\Modules\HR\Http\Controllers\Api\V1\HolidayController;
 use App\Modules\HR\Http\Controllers\Api\V1\LeaveBalanceController;
 use App\Modules\HR\Http\Controllers\Api\V1\LeaveRequestController;
 use App\Modules\HR\Http\Controllers\Api\V1\LeaveTypeController;
+use App\Modules\HR\Http\Controllers\Api\V1\OfficeLocationController;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 
@@ -49,6 +50,9 @@ Route::prefix('api/v1')
 
         Route::get('attendance-settings', [AttendanceSettingController::class, 'show'])->name('attendance-settings.show');
         Route::put('attendance-settings', [AttendanceSettingController::class, 'update'])->name('attendance-settings.update');
+
+        Route::get('office-location', [OfficeLocationController::class, 'show'])->name('office-location.show');
+        Route::put('office-location', [OfficeLocationController::class, 'update'])->name('office-location.update');
 
         Route::get('employee-documents/{employeeDocument}/file', EmployeeDocumentDownloadController::class)
             ->middleware('signed')

@@ -92,6 +92,7 @@ final class Roles
             'attendance.check_in',
             'attendance.record',
             'attendance.manage_settings',
+            'attendance.manage',
 
             'employee_document.view',
             'employee_document.view_all',
@@ -142,6 +143,7 @@ final class Roles
             'expense.create',
             'expense.update',
             'expense.delete',
+            'expense.approve',
 
             'invoice.view',
             'invoice.create',
@@ -204,7 +206,7 @@ final class Roles
                 'leave_type.view', 'leave_type.create', 'leave_type.update',
                 'leave.view', 'leave.request', 'leave.approve', 'leave.manage_balance',
                 'attendance.view', 'attendance.view_all', 'attendance.check_in',
-                'attendance.record', 'attendance.manage_settings',
+                'attendance.record', 'attendance.manage_settings', 'attendance.manage',
                 'employee_document.view', 'employee_document.view_all',
                 'employee_document.upload', 'employee_document.delete',
                 'project.view', 'project.create', 'project.update', 'project.delete',
@@ -217,7 +219,7 @@ final class Roles
                 'follow_up.view', 'follow_up.view_all', 'follow_up.create',
                 'follow_up.update', 'follow_up.delete', 'crm.view_dashboard',
                 'income.view', 'income.create', 'income.update',
-                'expense.view', 'expense.create', 'expense.update',
+                'expense.view', 'expense.create', 'expense.update', 'expense.approve',
                 'invoice.view', 'invoice.create', 'invoice.update',
                 'invoice.send', 'invoice.record_payment', 'finance.view_reports',
                 'traveller.view', 'traveller.view_all', 'traveller.create', 'traveller.update',

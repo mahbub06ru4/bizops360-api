@@ -23,6 +23,9 @@ use App\Modules\Finance\Domain\ExpenseCategory;
 use App\Modules\Finance\Domain\IncomeCategory;
 use App\Modules\Finance\Domain\PaymentMethod;
 use App\Modules\Finance\Models\Invoice;
+use App\Modules\HR\Actions\CreateLeaveType;
+use App\Modules\HR\Data\LeaveTypeData;
+use App\Modules\HR\Models\LeaveType;
 use App\Modules\Industry\Travel\Actions\CreateBooking;
 use App\Modules\Industry\Travel\Actions\IssueBooking;
 use App\Modules\Industry\Travel\Actions\OpenVisaApplication;
@@ -118,23 +121,37 @@ class DemoSeeder extends Seeder
                 }
             }
 
+            if (LeaveType::query()->where('tenant_id', $tenant->getKey())->doesntExist()) {
+                $this->seedLeaveTypes();
+            }
+
             if (Employee::query()->where('tenant_id', $tenant->getKey())->doesntExist()) {
-                $staff = User::where('email', "staff@{$spec['slug']}.test")->first();
                 $salesDept = Department::query()->where('code', 'SAL')->first();
 
-                app(CreateEmployee::class)->handle(new EmployeeData(
-                    userId: $staff?->getKey(),
-                    branchId: null,
-                    departmentId: $salesDept?->getKey(),
-                    designationId: null,
-                    employeeCode: 'EMP-0001',
-                    firstName: 'Sample',
-                    lastName: 'Employee',
-                    email: "employee@{$spec['slug']}.test",
-                    phone: null,
-                    hireDate: now()->subYear()->format('Y-m-d'),
-                    employmentStatus: EmploymentStatus::Active,
-                ));
+                // Every demo login gets a linked Employee record so HR features
+                // (attendance check-in/out, leave requests) work for each role,
+                // not just "staff".
+                foreach (Roles::all() as $i => $role) {
+                    $roleUser = User::where('email', "{$role}@{$spec['slug']}.test")->first();
+
+                    if ($roleUser === null) {
+                        continue;
+                    }
+
+                    app(CreateEmployee::class)->handle(new EmployeeData(
+                        userId: $roleUser->getKey(),
+                        branchId: null,
+                        departmentId: $salesDept?->getKey(),
+                        designationId: null,
+                        employeeCode: sprintf('EMP-%04d', $i + 1),
+                        firstName: Str::headline($role),
+                        lastName: 'Employee',
+                        email: "{$role}.employee@{$spec['slug']}.test",
+                        phone: null,
+                        hireDate: now()->subYear()->format('Y-m-d'),
+                        employmentStatus: EmploymentStatus::Active,
+                    ));
+                }
             }
 
             $this->seedFinance($tenant, $spec['slug']);
@@ -145,6 +162,26 @@ class DemoSeeder extends Seeder
 
             $context->clear();
             $registrar->setPermissionsTeamId(null);
+        }
+    }
+
+    /**
+     * The standard set of leave categories every tenant offers.
+     */
+    private function seedLeaveTypes(): void
+    {
+        foreach ([
+            ['name' => 'Annual Leave', 'code' => 'ANNUAL', 'days' => 20, 'paid' => true],
+            ['name' => 'Sick Leave', 'code' => 'SICK', 'days' => 10, 'paid' => true],
+            ['name' => 'Casual Leave', 'code' => 'CASUAL', 'days' => 7, 'paid' => true],
+        ] as $type) {
+            app(CreateLeaveType::class)->handle(new LeaveTypeData(
+                name: $type['name'],
+                code: $type['code'],
+                defaultDaysPerYear: $type['days'],
+                isPaid: $type['paid'],
+                requiresApproval: true,
+            ));
         }
     }
 

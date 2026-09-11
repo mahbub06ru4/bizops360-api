@@ -7,6 +7,7 @@ namespace App\Modules\Finance\Models;
 use App\Models\User;
 use App\Modules\Finance\Database\Factories\ExpenseFactory;
 use App\Modules\Finance\Domain\ExpenseCategory;
+use App\Modules\Finance\Domain\ExpenseStatus;
 use App\Modules\Finance\Domain\PaymentMethod;
 use App\Modules\Organization\Models\Employee;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
@@ -31,6 +32,10 @@ use Illuminate\Support\Carbon;
  * @property PaymentMethod $method
  * @property string|null $reference
  * @property string|null $note
+ * @property ExpenseStatus $status
+ * @property int|null $approved_by
+ * @property Carbon|null $approved_at
+ * @property string|null $decision_note
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -54,6 +59,12 @@ class Expense extends Model
         return $this->belongsTo(User::class, 'recorded_by');
     }
 
+    /** @return BelongsTo<User, $this> */
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
     /**
      * @return array<string, string>
      */
@@ -64,6 +75,8 @@ class Expense extends Model
             'method' => PaymentMethod::class,
             'amount' => 'decimal:2',
             'spent_on' => 'date',
+            'status' => ExpenseStatus::class,
+            'approved_at' => 'datetime',
         ];
     }
 

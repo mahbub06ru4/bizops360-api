@@ -22,6 +22,10 @@ class AttendanceSettingFactory extends Factory
     {
         return [
             'tenant_id' => Tenant::factory(),
+            'label' => 'Head Office',
+            'latitude' => fake()->latitude(),
+            'longitude' => fake()->longitude(),
+            'radius_meters' => 500,
             'work_starts_at' => '09:00:00',
             'work_ends_at' => '17:00:00',
             'grace_minutes' => 15,

@@ -17,13 +17,17 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $tenant_id
+ * @property string $label
+ * @property string|null $latitude
+ * @property string|null $longitude
+ * @property int $radius_meters
  * @property string $work_starts_at
  * @property string $work_ends_at
  * @property int $grace_minutes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['work_starts_at', 'work_ends_at', 'grace_minutes'])]
+#[Fillable(['label', 'latitude', 'longitude', 'radius_meters', 'work_starts_at', 'work_ends_at', 'grace_minutes'])]
 class AttendanceSetting extends Model
 {
     use BelongsToTenant;
@@ -42,6 +46,10 @@ class AttendanceSetting extends Model
     protected function casts(): array
     {
         return [
+            'label' => 'string',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+            'radius_meters' => 'integer',
             'work_starts_at' => 'string',
             'work_ends_at' => 'string',
             'grace_minutes' => 'integer',

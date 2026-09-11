@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Database\Factories;
 
 use App\Modules\Finance\Domain\ExpenseCategory;
+use App\Modules\Finance\Domain\ExpenseStatus;
 use App\Modules\Finance\Domain\PaymentMethod;
 use App\Modules\Finance\Models\Expense;
 use App\Modules\Tenant\Models\Tenant;
@@ -34,6 +35,10 @@ class ExpenseFactory extends Factory
             'method' => fake()->randomElement(PaymentMethod::cases()),
             'reference' => fake()->optional()->bothify('EXP-####'),
             'note' => null,
+            'status' => ExpenseStatus::Pending,
+            'approved_by' => null,
+            'approved_at' => null,
+            'decision_note' => null,
         ];
     }
 
@@ -50,5 +55,10 @@ class ExpenseFactory extends Factory
     public function on(string $date): static
     {
         return $this->state(fn (array $attributes): array => ['spent_on' => $date]);
+    }
+
+    public function status(ExpenseStatus $status): static
+    {
+        return $this->state(fn (array $attributes): array => ['status' => $status]);
     }
 }

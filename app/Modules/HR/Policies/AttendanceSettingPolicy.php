@@ -17,4 +17,9 @@ class AttendanceSettingPolicy
     {
         return $user->can('attendance.manage_settings');
     }
+
+    public function manageLocation(User $user): bool
+    {
+        return $user->can('attendance.manage');
+    }
 }
