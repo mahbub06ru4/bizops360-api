@@ -132,7 +132,10 @@ class BookingController extends Controller
             $request->string('due_date')->toString() ?: null,
         );
 
-        return InvoiceResource::make($booking->invoice()->firstOrFail())
+        $invoice = $booking->invoice()->firstOrFail();
+        $invoice->setRelation('booking', $booking);
+
+        return InvoiceResource::make($invoice)
             ->response()->setStatusCode(201);
     }
 

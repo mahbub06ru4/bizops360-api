@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Modules\Finance\Actions\CreateInvoice;
 use App\Modules\Finance\Data\InvoiceData;
 use App\Modules\Industry\Travel\Actions\Concerns\InteractsWithTenant;
+use App\Modules\Industry\Travel\Domain\BookingStatus;
 use App\Modules\Industry\Travel\Models\Booking;
 use App\Modules\Tenant\Context\TenantContext;
 use Illuminate\Support\Carbon;
@@ -40,8 +41,11 @@ class RaiseInvoiceForBooking
             throw ValidationException::withMessages(['booking' => 'Attach a customer to the booking before invoicing it.']);
         }
 
-        if ($booking->status->isCancelled()) {
-            throw ValidationException::withMessages(['booking' => "A {$booking->status->value} booking cannot be invoiced."]);
+        // Only issued business is invoiceable: air tickets move to Ticketed,
+        // everything else (hotel, package, transport, …) moves to Confirmed —
+        // see IssueBooking. A still-Quoted, Cancelled or Refunded booking is not.
+        if (! in_array($booking->status, [BookingStatus::Confirmed, BookingStatus::Ticketed, BookingStatus::Completed], true)) {
+            throw ValidationException::withMessages(['booking' => "A {$booking->status->value} booking cannot be invoiced — issue it first."]);
         }
 
         return DB::transaction(function () use ($booking, $actor, $issueDate, $dueDate): Booking {

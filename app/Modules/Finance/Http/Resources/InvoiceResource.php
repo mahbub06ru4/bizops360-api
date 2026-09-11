@@ -6,6 +6,7 @@ namespace App\Modules\Finance\Http\Resources;
 
 use App\Modules\CRM\Http\Resources\CustomerResource;
 use App\Modules\Finance\Models\Invoice;
+use App\Modules\Industry\Travel\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -34,6 +35,16 @@ class InvoiceResource extends JsonResource
             'notes' => $this->notes,
             'created_by' => $this->created_by,
             'customer' => new CustomerResource($this->whenLoaded('customer')),
+            'booking' => $this->whenLoaded('booking', function (): array {
+                /** @var Booking $booking */
+                $booking = $this->getRelation('booking');
+
+                return [
+                    'id' => $booking->id,
+                    'reference' => $booking->reference,
+                    'pnr' => $booking->pnr,
+                ];
+            }),
             'payments' => InvoicePaymentResource::collection($this->whenLoaded('payments')),
             'refunds' => InvoiceRefundResource::collection($this->whenLoaded('refunds')),
             'created_at' => $this->created_at?->toIso8601String(),
