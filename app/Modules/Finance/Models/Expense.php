@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Models;
 
 use App\Models\User;
+use App\Modules\Audit\Concerns\LogsBusinessActivity;
 use App\Modules\Finance\Database\Factories\ExpenseFactory;
 use App\Modules\Finance\Domain\ExpenseCategory;
 use App\Modules\Finance\Domain\ExpenseStatus;
@@ -46,6 +47,8 @@ class Expense extends Model
 
     /** @use HasFactory<ExpenseFactory> */
     use HasFactory;
+
+    use LogsBusinessActivity;
 
     /** @return BelongsTo<Employee, $this> */
     public function employee(): BelongsTo

@@ -63,6 +63,57 @@ services:
         value: production
       - key: SENTRY_TRACES_SAMPLE_RATE
         value: "0.2"
+      - key: BROADCAST_CONNECTION
+        value: reverb
+      - key: REVERB_APP_ID
+        sync: false
+      - key: REVERB_APP_KEY
+        sync: false
+      - key: REVERB_APP_SECRET
+        sync: false
+      - key: REVERB_HOST
+        value: bizops360-api-reverb.onrender.com
+      - key: REVERB_PORT
+        value: "443"
+      - key: REVERB_SCHEME
+        value: https
+
+  - type: web
+    name: bizops360-api-reverb
+    runtime: docker
+    dockerfilePath: docker/production/Dockerfile
+    dockerContext: .
+    plan: starter
+    autoDeploy: true
+    envVars:
+      - key: CONTAINER_ROLE
+        value: reverb
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: APP_KEY
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: REVERB_APP_ID
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: REVERB_APP_KEY
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: REVERB_APP_SECRET
+      - key: APP_ENV
+        value: production
+      - key: DB_CONNECTION
+        value: sqlite # Reverb never touches the app DB; avoids needing DB_URL here too
+      - key: CACHE_STORE
+        value: array
+      - key: SESSION_DRIVER
+        value: array
+      - key: QUEUE_CONNECTION
+        value: sync
 
   - type: worker
     name: bizops360-api-worker

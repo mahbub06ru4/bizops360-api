@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Industry\Travel\Models;
 
 use App\Models\User;
+use App\Modules\Audit\Concerns\LogsBusinessActivity;
 use App\Modules\CRM\Models\Customer;
 use App\Modules\Finance\Domain\Money;
 use App\Modules\Finance\Models\Invoice;
@@ -70,6 +71,8 @@ class Booking extends Model
 
     /** @use HasFactory<BookingFactory> */
     use HasFactory;
+
+    use LogsBusinessActivity;
 
     /** @return BelongsTo<Customer, $this> */
     public function customer(): BelongsTo

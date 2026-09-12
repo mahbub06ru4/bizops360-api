@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\CRM\Models;
 
 use App\Models\User;
+use App\Modules\Audit\Concerns\LogsBusinessActivity;
 use App\Modules\CRM\Database\Factories\CustomerFactory;
 use App\Modules\Organization\Models\Employee;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
@@ -39,6 +40,8 @@ class Customer extends Model
 
     /** @use HasFactory<CustomerFactory> */
     use HasFactory;
+
+    use LogsBusinessActivity;
 
     /** @return BelongsTo<Employee, $this> */
     public function owner(): BelongsTo

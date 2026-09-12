@@ -181,6 +181,11 @@ final class Roles
             'booking.delete',
 
             'travel.view_dashboard',
+
+            'audit.view',
+
+            'billing.view',
+            'billing.manage',
         ];
     }
 
@@ -227,6 +232,7 @@ final class Roles
                 'visa_application.update', 'visa_application.submit', 'visa_application.decide',
                 'booking.view', 'booking.view_all', 'booking.create', 'booking.update',
                 'booking.issue', 'booking.cancel', 'booking.invoice', 'travel.view_dashboard',
+                'audit.view', 'billing.view',
             ],
             self::STAFF => [
                 'branch.view',

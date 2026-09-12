@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Models;
 
 use App\Models\User;
+use App\Modules\Audit\Concerns\LogsBusinessActivity;
 use App\Modules\CRM\Models\Customer;
 use App\Modules\Finance\Database\Factories\InvoiceFactory;
 use App\Modules\Finance\Domain\InvoiceBalance;
@@ -48,6 +49,8 @@ class Invoice extends Model
 
     /** @use HasFactory<InvoiceFactory> */
     use HasFactory;
+
+    use LogsBusinessActivity;
 
     /** @return BelongsTo<Customer, $this> */
     public function customer(): BelongsTo

@@ -7,7 +7,7 @@ for you.
 
 ## What Render builds
 
-`docker/production/Dockerfile` — one image, two roles selected by the
+`docker/production/Dockerfile` — one image, three roles selected by the
 `CONTAINER_ROLE` env var:
 
 - **`bizops360-api`** (web, `CONTAINER_ROLE=web`) — nginx + php-fpm via
@@ -17,6 +17,12 @@ for you.
 - **`bizops360-api-worker`** (background worker, `CONTAINER_ROLE=worker`) —
   `php artisan queue:work --tries=3 --max-time=3600`. Render restarts the
   process if it exits; `--max-time` recycles it hourly to shed memory growth.
+- **`bizops360-api-reverb`** (web, `CONTAINER_ROLE=reverb`) — `php artisan
+  reverb:start`, the realtime WebSocket server (spec §9). Task/follow-up
+  notifications broadcast here in addition to the `database` channel; the
+  Flutter app (and any browser client) connects to this service's own URL,
+  not the main API's. Needs its own public URL because clients hold a
+  long-lived WebSocket connection to it directly.
 
 Build it locally to sanity-check before you ever touch Render:
 
@@ -37,8 +43,9 @@ curl http://localhost:8080/up   # expect 200
    That whole string is `DB_URL`.
 3. **Render** (render.com):
    - New → **Blueprint** → connect the `bizops360-api` GitHub repo → it reads
-     `render.yaml` and proposes the `bizops360-api` web service + the
-     `bizops360-api-worker` background worker.
+     `render.yaml` and proposes the `bizops360-api` web service, the
+     `bizops360-api-worker` background worker, and the `bizops360-api-reverb`
+     realtime service.
    - Add a **Key Value** instance (Render's managed Redis) in the same
      region → copy its internal connection URL into `REDIS_URL` on the web
      service (the worker inherits it via `fromService`).
@@ -56,6 +63,15 @@ curl http://localhost:8080/up   # expect 200
        unset only if nothing browser-based calls the API yet.
      - `SENTRY_LARAVEL_DSN` — from step 5, or leave blank to skip monitoring
        for now (the SDK no-ops without a DSN).
+     - `REVERB_APP_ID` / `REVERB_APP_KEY` / `REVERB_APP_SECRET` — any values
+       you generate (they're shared secrets between the API and the Reverb
+       service, not a third-party credential — e.g. `openssl rand -hex 16`
+       for each). The Reverb service and the worker inherit them via
+       `fromService`.
+   - After the first deploy, edit `bizops360-api`'s `REVERB_HOST` to that
+     service's real Render URL if it differs from the `bizops360-api-reverb`
+     default in `render.yaml`, and point the mobile app's Echo config at the
+     same host.
 4. **S3-compatible storage** — any of these work, pick one:
    - AWS S3 — standard, no `AWS_ENDPOINT` needed.
    - Cloudflare R2 / DigitalOcean Spaces — set `AWS_ENDPOINT` to the
@@ -94,13 +110,12 @@ curl http://localhost:8080/up   # expect 200
 | Queue workers for long-running jobs | ✅ this deploy — nothing async yet queued by default, worker is ready |
 | DB backup and restore verified | ⚠️ **you must run the BACKUPS.md restore drill once** |
 | Error monitoring enabled | ⚠️ wired (Sentry), **needs a real DSN** to be "on" |
-| Audit logging for important actions | ❌ not built — no phase covered this explicitly; consider before real tenants |
+| Audit logging for important actions | ✅ `spatie/laravel-activitylog` on Invoice/Payment/Refund/Employee/LeaveRequest/Booking/VisaApplication/Lead/Customer/Subscription, tenant-scoped, `GET /api/v1/activity` |
 | Secrets in env/secret management, never source control | ✅ `.env*` gitignored, Render env vars, nothing hardcoded |
 | CI passes before deployment | ✅ GitHub Actions, required to stay green |
 | API versioning policy documented | ✅ `/api/v1`, spec §7 |
 
-The two ❌/⚠️ rows are the honest gaps before onboarding a paying tenant:
-**activity/audit logging** (no phase in the spec built it — worth a small
-follow-up using `spatie/laravel-activitylog` on the business tables) and
-**actually running the backup restore drill**, not just having Neon PITR
-theoretically available.
+The remaining ⚠️ rows are the honest gaps before onboarding a paying tenant:
+run the `BACKUPS.md` restore drill for real (don't just trust that Neon PITR
+exists), and put a real Sentry DSN in before the first paying tenant so
+errors actually get reported instead of silently no-op'd.

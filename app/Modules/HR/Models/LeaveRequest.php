@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\HR\Models;
 
 use App\Models\User;
+use App\Modules\Audit\Concerns\LogsBusinessActivity;
 use App\Modules\HR\Database\Factories\LeaveRequestFactory;
 use App\Modules\HR\Domain\LeaveStatus;
 use App\Modules\Organization\Models\Employee;
@@ -40,6 +41,8 @@ class LeaveRequest extends Model
 
     /** @use HasFactory<LeaveRequestFactory> */
     use HasFactory;
+
+    use LogsBusinessActivity;
 
     /** @return BelongsTo<Employee, $this> */
     public function employee(): BelongsTo

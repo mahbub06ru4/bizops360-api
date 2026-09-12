@@ -19,6 +19,7 @@ use Spatie\Permission\Traits\HasRoles;
 /**
  * @property int $id
  * @property int|null $tenant_id
+ * @property bool $is_platform_admin
  * @property string $name
  * @property string $email
  * @property string $password

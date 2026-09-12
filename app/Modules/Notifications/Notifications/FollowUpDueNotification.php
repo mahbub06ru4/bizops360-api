@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Notifications\Notifications;
 
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * A database reminder that a CRM follow-up is coming due. Primitives only.
+ * A reminder that a CRM follow-up is coming due. Primitives only. Persisted
+ * (database) and broadcast (Reverb) — see routes/channels.php.
  */
 class FollowUpDueNotification extends Notification
 {
@@ -24,7 +26,7 @@ class FollowUpDueNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     /**
@@ -40,5 +42,10 @@ class FollowUpDueNotification extends Notification
             'notes' => $this->notes,
             'message' => "{$this->type} follow-up for {$this->subjectLabel} is due.",
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toArray($notifiable));
     }
 }

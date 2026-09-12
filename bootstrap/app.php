@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\ForceJsonResponse;
+use App\Modules\Billing\Http\Middleware\EnsurePlatformAdmin;
 use App\Modules\Industry\Travel\Http\Middleware\EnsureIndustry;
 use App\Modules\Tenant\Http\Middleware\ResolveTenant;
 use Illuminate\Foundation\Application;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant' => ResolveTenant::class,
             'industry' => EnsureIndustry::class,
+            'platform_admin' => EnsurePlatformAdmin::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
