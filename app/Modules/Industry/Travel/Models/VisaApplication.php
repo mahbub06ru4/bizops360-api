@@ -51,6 +51,7 @@ use Illuminate\Support\Carbon;
 class VisaApplication extends Model
 {
     use BelongsToTenant;
+
     /** @use HasFactory<VisaApplicationFactory> */
     use HasFactory;
 

@@ -68,6 +68,7 @@ use Illuminate\Support\Carbon;
 class Booking extends Model
 {
     use BelongsToTenant;
+
     /** @use HasFactory<BookingFactory> */
     use HasFactory;
 

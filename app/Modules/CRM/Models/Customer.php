@@ -37,6 +37,7 @@ use Illuminate\Support\Carbon;
 class Customer extends Model
 {
     use BelongsToTenant;
+
     /** @use HasFactory<CustomerFactory> */
     use HasFactory;
 

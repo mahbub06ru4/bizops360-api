@@ -42,6 +42,7 @@ use Illuminate\Support\Carbon;
 class Lead extends Model
 {
     use BelongsToTenant;
+
     /** @use HasFactory<LeadFactory> */
     use HasFactory;
 

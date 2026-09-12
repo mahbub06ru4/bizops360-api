@@ -35,6 +35,7 @@ use Illuminate\Support\Carbon;
 class InvoiceRefund extends Model
 {
     use BelongsToTenant;
+
     /** @use HasFactory<InvoiceRefundFactory> */
     use HasFactory;
 

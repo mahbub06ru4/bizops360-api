@@ -38,6 +38,7 @@ use Illuminate\Support\Carbon;
 class LeaveRequest extends Model
 {
     use BelongsToTenant;
+
     /** @use HasFactory<LeaveRequestFactory> */
     use HasFactory;
 

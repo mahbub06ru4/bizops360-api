@@ -45,6 +45,7 @@ use Illuminate\Support\Carbon;
 class Employee extends Model
 {
     use BelongsToTenant;
+
     /** @use HasFactory<EmployeeFactory> */
     use HasFactory;
 

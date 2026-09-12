@@ -44,6 +44,7 @@ use Illuminate\Support\Carbon;
 class Expense extends Model
 {
     use BelongsToTenant;
+
     /** @use HasFactory<ExpenseFactory> */
     use HasFactory;
 
