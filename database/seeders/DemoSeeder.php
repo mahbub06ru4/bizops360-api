@@ -7,6 +7,9 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Modules\Authorization\Actions\ProvisionTenantRbac;
 use App\Modules\Authorization\Roles;
+use App\Modules\Billing\Domain\SubscriptionStatus;
+use App\Modules\Billing\Models\Plan;
+use App\Modules\Billing\Models\Subscription;
 use App\Modules\CRM\Actions\AddContact;
 use App\Modules\CRM\Actions\CreateCustomer;
 use App\Modules\CRM\Actions\CreateLead;
@@ -114,6 +117,16 @@ class DemoSeeder extends Seeder
         $registrar = app(PermissionRegistrar::class);
         $context = app(TenantContext::class);
 
+        // Platform admin: tenant_id null, is_platform_admin true — sees
+        // GET /api/v1/platform/analytics, nothing tenant-scoped.
+        $platformAdmin = User::firstOrNew(['email' => 'platform-admin@bizops360.test']);
+        $platformAdmin->tenant_id = null;
+        $platformAdmin->is_platform_admin = true;
+        $platformAdmin->name = 'Platform Admin';
+        $platformAdmin->password = Hash::make('password');
+        $platformAdmin->email_verified_at = now();
+        $platformAdmin->save();
+
         foreach ([
             ['name' => 'Wanderlust Travel', 'slug' => 'wanderlust', 'industry' => 'travel'],
             ['name' => 'Skyline Properties', 'slug' => 'skyline', 'industry' => 'real_estate'],
@@ -128,6 +141,25 @@ class DemoSeeder extends Seeder
 
             $context->set($tenant);
             $registrar->setPermissionsTeamId($tenant->getKey());
+
+            $planCode = match ($spec['slug']) {
+                'wanderlust' => 'growth',
+                'skyline' => 'scale',
+                default => 'starter',
+            };
+            $plan = Plan::query()->where('code', $planCode)->first();
+
+            if ($plan !== null) {
+                Subscription::query()->updateOrCreate(
+                    ['tenant_id' => $tenant->getKey()],
+                    [
+                        'plan_id' => $plan->getKey(),
+                        'status' => $spec['slug'] === 'northbridge' ? SubscriptionStatus::Trialing : SubscriptionStatus::Active,
+                        'trial_ends_at' => $spec['slug'] === 'northbridge' ? now()->addDays(14) : null,
+                        'current_period_ends_at' => $spec['slug'] === 'northbridge' ? null : now()->addMonth(),
+                    ],
+                );
+            }
 
             foreach (Roles::all() as $role) {
                 $user = User::firstOrNew(['email' => "{$role}@{$spec['slug']}.test"]);

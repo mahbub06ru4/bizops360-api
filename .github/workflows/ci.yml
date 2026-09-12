@@ -119,3 +119,17 @@ jobs:
           status=$(docker inspect -f '{{.State.Status}}' worker-smoke)
           docker rm -f worker-smoke >/dev/null
           [ "$status" = "running" ] || { echo "worker exited early: $status" >&2; exit 1; }
+
+      - name: Boot the reverb role
+        run: |
+          docker run -d --name reverb-smoke -e CONTAINER_ROLE=reverb \
+            -e APP_KEY=base64:$(openssl rand -base64 32) \
+            -e DB_CONNECTION=sqlite -e DB_DATABASE=/tmp/ci-reverb.sqlite \
+            -e CACHE_STORE=array -e SESSION_DRIVER=array -e QUEUE_CONNECTION=sync \
+            -e REVERB_APP_ID=ci -e REVERB_APP_KEY=ci -e REVERB_APP_SECRET=ci \
+            bizops360-api:ci
+          sleep 5
+          docker logs reverb-smoke
+          status=$(docker inspect -f '{{.State.Status}}' reverb-smoke)
+          docker rm -f reverb-smoke >/dev/null
+          [ "$status" = "running" ] || { echo "reverb exited early: $status" >&2; exit 1; }

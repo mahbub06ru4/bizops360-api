@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Organization\Models;
 
 use App\Models\User;
+use App\Modules\Audit\Concerns\LogsBusinessActivity;
 use App\Modules\Organization\Database\Factories\EmployeeFactory;
 use App\Modules\Organization\Domain\EmploymentStatus;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
@@ -44,9 +45,10 @@ use Illuminate\Support\Carbon;
 class Employee extends Model
 {
     use BelongsToTenant;
-
     /** @use HasFactory<EmployeeFactory> */
     use HasFactory;
+
+    use LogsBusinessActivity;
 
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo

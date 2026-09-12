@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Industry\Travel\Models;
 
 use App\Models\User;
+use App\Modules\Audit\Concerns\LogsBusinessActivity;
 use App\Modules\CRM\Models\Customer;
 use App\Modules\Industry\Travel\Database\Factories\VisaApplicationFactory;
 use App\Modules\Industry\Travel\Domain\VisaStage;
@@ -50,9 +51,10 @@ use Illuminate\Support\Carbon;
 class VisaApplication extends Model
 {
     use BelongsToTenant;
-
     /** @use HasFactory<VisaApplicationFactory> */
     use HasFactory;
+
+    use LogsBusinessActivity;
 
     /** @return BelongsTo<Traveller, $this> */
     public function traveller(): BelongsTo

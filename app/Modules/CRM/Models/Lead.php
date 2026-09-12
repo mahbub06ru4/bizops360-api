@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\CRM\Models;
 
 use App\Models\User;
+use App\Modules\Audit\Concerns\LogsBusinessActivity;
 use App\Modules\CRM\Database\Factories\LeadFactory;
 use App\Modules\CRM\Domain\LeadStage;
 use App\Modules\Organization\Models\Employee;
@@ -41,9 +42,10 @@ use Illuminate\Support\Carbon;
 class Lead extends Model
 {
     use BelongsToTenant;
-
     /** @use HasFactory<LeadFactory> */
     use HasFactory;
+
+    use LogsBusinessActivity;
 
     /** @return BelongsTo<Employee, $this> */
     public function owner(): BelongsTo

@@ -7,6 +7,7 @@ namespace App\Modules\Identity\Actions;
 use App\Models\User;
 use App\Modules\Authorization\Actions\ProvisionTenantRbac;
 use App\Modules\Authorization\Roles;
+use App\Modules\Billing\Actions\StartTrialSubscription;
 use App\Modules\Identity\Data\RegisterTenantData;
 use App\Modules\Tenant\Context\TenantContext;
 use App\Modules\Tenant\Models\Tenant;
@@ -23,6 +24,7 @@ class RegisterTenant
 {
     public function __construct(
         private readonly ProvisionTenantRbac $provisionRbac,
+        private readonly StartTrialSubscription $startTrial,
         private readonly TenantContext $context,
         private readonly PermissionRegistrar $registrar,
     ) {}
@@ -36,7 +38,13 @@ class RegisterTenant
                 'industry' => $data->industry,
             ]);
 
+            // Bind the tenant context immediately — StartTrialSubscription
+            // and every model created below rely on it to auto-fill tenant_id.
+            $this->context->set($tenant);
+            $this->registrar->setPermissionsTeamId($tenant->getKey());
+
             $this->provisionRbac->handle($tenant);
+            $this->startTrial->handle($tenant);
 
             $user = new User;
             $user->tenant_id = $tenant->getKey();
@@ -45,8 +53,6 @@ class RegisterTenant
             $user->password = Hash::make($data->ownerPassword);
             $user->save();
 
-            $this->context->set($tenant);
-            $this->registrar->setPermissionsTeamId($tenant->getKey());
             $user->assignRole(Roles::OWNER);
 
             return $user->fresh(['tenant', 'roles']);

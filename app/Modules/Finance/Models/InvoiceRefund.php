@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Models;
 
 use App\Models\User;
+use App\Modules\Audit\Concerns\LogsBusinessActivity;
 use App\Modules\Finance\Database\Factories\InvoiceRefundFactory;
 use App\Modules\Finance\Domain\PaymentMethod;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
@@ -34,9 +35,10 @@ use Illuminate\Support\Carbon;
 class InvoiceRefund extends Model
 {
     use BelongsToTenant;
-
     /** @use HasFactory<InvoiceRefundFactory> */
     use HasFactory;
+
+    use LogsBusinessActivity;
 
     /** @return BelongsTo<Invoice, $this> */
     public function invoice(): BelongsTo
