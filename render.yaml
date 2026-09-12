@@ -1,0 +1,120 @@
+# The Postgres database is Neon (external, not Render Postgres) — see
+# docs/ops/DEPLOY.md. Set DB_URL on both services below to Neon's
+# connection string once it exists.
+
+services:
+  - type: web
+    name: bizops360-api
+    runtime: docker
+    dockerfilePath: docker/production/Dockerfile
+    dockerContext: .
+    plan: starter
+    region: singapore
+    healthCheckPath: /up
+    autoDeploy: true
+    envVars:
+      - key: CONTAINER_ROLE
+        value: web
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false # `php artisan key:generate --show`, paste once, never in git
+      - key: APP_URL
+        value: https://bizops360-api.onrender.com
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_LEVEL
+        value: warning
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        sync: false # Neon connection string (postgresql://... ?sslmode=require)
+      - key: CACHE_STORE
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: REDIS_URL
+        sync: false # Render Key Value instance connection string
+      - key: FILESYSTEM_DISK
+        value: s3
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_DEFAULT_REGION
+        sync: false
+      - key: AWS_BUCKET
+        sync: false
+      - key: AWS_ENDPOINT
+        sync: false # only for a non-AWS S3-compatible provider (R2, Spaces, ...)
+      - key: AWS_USE_PATH_STYLE_ENDPOINT
+        value: "true"
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false # e.g. https://app.bizops360.example (Flutter web build's origin)
+      - key: SENTRY_LARAVEL_DSN
+        sync: false
+      - key: SENTRY_ENVIRONMENT
+        value: production
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        value: "0.2"
+
+  - type: worker
+    name: bizops360-api-worker
+    runtime: docker
+    dockerfilePath: docker/production/Dockerfile
+    dockerContext: .
+    plan: starter
+    autoDeploy: true
+    envVars:
+      - key: CONTAINER_ROLE
+        value: worker
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: APP_KEY
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: DB_URL
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: REDIS_URL
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: AWS_ACCESS_KEY_ID
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: AWS_SECRET_ACCESS_KEY
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: AWS_DEFAULT_REGION
+      - fromService:
+          type: web
+          name: bizops360-api
+          envVarKey: AWS_BUCKET
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: CACHE_STORE
+        value: redis
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: FILESYSTEM_DISK
+        value: s3
+      - key: SENTRY_LARAVEL_DSN
+        sync: false
+      - key: SENTRY_ENVIRONMENT
+        value: production

@@ -82,3 +82,40 @@ jobs:
 
       - name: OpenAPI contract generates
         run: php artisan scramble:export
+
+  production-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build production image
+        run: docker build -f docker/production/Dockerfile -t bizops360-api:ci .
+
+      - name: Boot it and check /up
+        run: |
+          docker run -d --name prod-smoke -p 8080:8080 \
+            -e APP_KEY=base64:$(openssl rand -base64 32) \
+            -e DB_CONNECTION=sqlite -e DB_DATABASE=/tmp/ci.sqlite \
+            -e CACHE_STORE=array -e SESSION_DRIVER=array -e QUEUE_CONNECTION=sync \
+            bizops360-api:ci
+          for i in $(seq 1 15); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/up || true)
+            [ "$code" = "200" ] && echo "up: $code" && exit 0
+            sleep 2
+          done
+          echo "health check never returned 200" >&2
+          docker logs prod-smoke
+          exit 1
+
+      - name: Boot the worker role
+        run: |
+          docker run -d --name worker-smoke -e CONTAINER_ROLE=worker \
+            -e APP_KEY=base64:$(openssl rand -base64 32) \
+            -e DB_CONNECTION=sqlite -e DB_DATABASE=/tmp/ci-worker.sqlite \
+            -e CACHE_STORE=array -e SESSION_DRIVER=array -e QUEUE_CONNECTION=sync \
+            bizops360-api:ci
+          sleep 5
+          docker logs worker-smoke
+          status=$(docker inspect -f '{{.State.Status}}' worker-smoke)
+          docker rm -f worker-smoke >/dev/null
+          [ "$status" = "running" ] || { echo "worker exited early: $status" >&2; exit 1; }
