@@ -21,6 +21,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Render (and any single-hop PaaS load balancer) sits in front of the
+        // app as the only entry point, so trust its X-Forwarded-* headers —
+        // otherwise HTTPS detection, client IPs, and rate limiting all see the
+        // proxy instead of the real request.
+        $middleware->trustProxies(at: '*');
+
         $middleware->prependToGroup('api', ForceJsonResponse::class);
 
         $middleware->alias([
