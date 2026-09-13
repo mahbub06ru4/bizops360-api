@@ -15,6 +15,13 @@ if [ "$CONTAINER_ROLE" = "web" ]; then
     # marked live, so migrations must be applied before nginx starts serving.
     php artisan migrate --force
 
+    # Scramble generates the OpenAPI doc by statically analysing every
+    # controller — a few seconds on a real machine, but the free Render
+    # plan's CPU share is thin enough that doing this on the *first request*
+    # to /docs/api timed out completely. Warm it once here instead; docs
+    # aren't worth failing the deploy over, so don't let this block startup.
+    php artisan scramble:cache || true
+
     exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 fi
 
