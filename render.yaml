@@ -88,19 +88,23 @@ services:
     envVars:
       - key: CONTAINER_ROLE
         value: reverb
-      - fromService:
+      - key: APP_KEY
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: APP_KEY
-      - fromService:
+      - key: REVERB_APP_ID
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: REVERB_APP_ID
-      - fromService:
+      - key: REVERB_APP_KEY
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: REVERB_APP_KEY
-      - fromService:
+      - key: REVERB_APP_SECRET
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: REVERB_APP_SECRET
@@ -125,31 +129,38 @@ services:
     envVars:
       - key: CONTAINER_ROLE
         value: worker
-      - fromService:
+      - key: APP_KEY
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: APP_KEY
-      - fromService:
+      - key: DB_URL
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: DB_URL
-      - fromService:
+      - key: REDIS_URL
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: REDIS_URL
-      - fromService:
+      - key: AWS_ACCESS_KEY_ID
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: AWS_ACCESS_KEY_ID
-      - fromService:
+      - key: AWS_SECRET_ACCESS_KEY
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: AWS_SECRET_ACCESS_KEY
-      - fromService:
+      - key: AWS_DEFAULT_REGION
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: AWS_DEFAULT_REGION
-      - fromService:
+      - key: AWS_BUCKET
+        fromService:
           type: web
           name: bizops360-api
           envVarKey: AWS_BUCKET
