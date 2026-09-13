@@ -1,28 +1,38 @@
-# Deploying BizOps 360 (Render + Neon + S3)
+# Deploying BizOps 360 (Render + Neon)
 
 Matches spec §17 (Deployment Path). Local dev stays Docker/Sail on the Mac —
 this doc is only about the first real deploy. `render.yaml` in the repo root
 is the Render Blueprint; this doc is the setup around it that Render can't do
 for you.
 
+**Current default is the minimal path: Render + Neon only**, same shape as
+other projects that got by on just those two. Redis and S3-compatible storage
+are real upgrades (see §"Optional upgrades" below) but not required to get
+live — `render.yaml`'s `bizops360-api` service runs on `CACHE_STORE=database`,
+`SESSION_DRIVER=cookie`, `FILESYSTEM_DISK=local` until you add them. The one
+thing that isn't optional: **Render's free plan has no background-worker
+service type**, so `QUEUE_CONNECTION=sync` — queued jobs run inline in the
+request instead of async. Fine at this scale; revisit when you're on a paid
+plan (see the note at the bottom of `render.yaml`).
+
 ## What Render builds
 
-`docker/production/Dockerfile` — one image, three roles selected by the
+`docker/production/Dockerfile` — one image, two roles selected by the
 `CONTAINER_ROLE` env var:
 
 - **`bizops360-api`** (web, `CONTAINER_ROLE=web`) — nginx + php-fpm via
   supervisord, listens on Render's `$PORT`, health-checked at `/up`. Runs
   `php artisan migrate --force` on every boot, before nginx starts serving —
   so a bad migration fails the deploy instead of going live half-broken.
-- **`bizops360-api-worker`** (background worker, `CONTAINER_ROLE=worker`) —
-  `php artisan queue:work --tries=3 --max-time=3600`. Render restarts the
-  process if it exits; `--max-time` recycles it hourly to shed memory growth.
+  **This is also the step that fails loudest if `DB_URL`/`APP_KEY` are wrong
+  or missing — check this service's deploy log first if it won't come up.**
 - **`bizops360-api-reverb`** (web, `CONTAINER_ROLE=reverb`) — `php artisan
   reverb:start`, the realtime WebSocket server (spec §9). Task/follow-up
   notifications broadcast here in addition to the `database` channel; the
   Flutter app (and any browser client) connects to this service's own URL,
   not the main API's. Needs its own public URL because clients hold a
-  long-lived WebSocket connection to it directly.
+  long-lived WebSocket connection to it directly. Doesn't touch the database
+  at all, so it comes up independently of Neon/`DB_URL` being correct.
 
 Build it locally to sanity-check before you ever touch Render:
 
@@ -40,50 +50,55 @@ curl http://localhost:8080/up   # expect 200
 1. **GitHub**: nothing to do, the repo already exists.
 2. **Neon** (neon.tech): create a project → a database → copy the pooled
    connection string (`postgresql://user:pass@host/db?sslmode=require`).
-   That whole string is `DB_URL`.
+   That whole string is `DB_URL`. If the connection specifically fails with
+   an auth/SSL error (not "host not found"), Neon's default string sometimes
+   includes `&channel_binding=require`, which some PDO/pgsql builds choke on
+   — drop that parameter and keep just `?sslmode=require`.
 3. **Render** (render.com):
    - New → **Blueprint** → connect the `bizops360-api` GitHub repo → it reads
-     `render.yaml` and proposes the `bizops360-api` web service, the
-     `bizops360-api-worker` background worker, and the `bizops360-api-reverb`
-     realtime service.
-   - Add a **Key Value** instance (Render's managed Redis) in the same
-     region → copy its internal connection URL into `REDIS_URL` on the web
-     service (the worker inherits it via `fromService`).
+     `render.yaml` and proposes the `bizops360-api` web service and the
+     `bizops360-api-reverb` realtime service.
    - Fill in the env vars marked `sync: false` in `render.yaml` — Render's
      dashboard prompts for each on first deploy:
      - `APP_KEY` — generate once, **outside** the container:
-       `php artisan key:generate --show` (run it in Sail locally) and paste
-       the `base64:...` value. Never reuse the dev key.
+       `./vendor/bin/sail artisan key:generate --show` and paste the
+       `base64:...` value. Never reuse the dev key.
      - `DB_URL` — the Neon string from step 2.
-     - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_DEFAULT_REGION` /
-       `AWS_BUCKET` / `AWS_ENDPOINT` — from step 4.
      - `CORS_ALLOWED_ORIGINS` — the origin(s) that call the API from a
        browser (the Flutter web build's domain, and `/docs/api` if you want
-       it browsable from somewhere other than the API's own origin). Leave
-       unset only if nothing browser-based calls the API yet.
-     - `SENTRY_LARAVEL_DSN` — from step 5, or leave blank to skip monitoring
-       for now (the SDK no-ops without a DSN).
+       it browsable from somewhere other than the API's own origin). `*` is
+       fine temporarily; tighten before real use.
+     - `SENTRY_LARAVEL_DSN` — leave blank to skip monitoring for now (the SDK
+       no-ops without a DSN).
      - `REVERB_APP_ID` / `REVERB_APP_KEY` / `REVERB_APP_SECRET` — any values
        you generate (they're shared secrets between the API and the Reverb
        service, not a third-party credential — e.g. `openssl rand -hex 16`
-       for each). The Reverb service and the worker inherit them via
-       `fromService`.
+       for each). The Reverb service inherits them via `fromService`.
    - After the first deploy, edit `bizops360-api`'s `REVERB_HOST` to that
      service's real Render URL if it differs from the `bizops360-api-reverb`
      default in `render.yaml`, and point the mobile app's Echo config at the
      same host.
-4. **S3-compatible storage** — any of these work, pick one:
-   - AWS S3 — standard, no `AWS_ENDPOINT` needed.
-   - Cloudflare R2 / DigitalOcean Spaces — set `AWS_ENDPOINT` to the
-     provider's S3-compatible endpoint and keep
-     `AWS_USE_PATH_STYLE_ENDPOINT=true`.
-   Create a **private** bucket — employee documents and task attachments are
-   served only through signed URLs (see `CLAUDE.md` rule 8), never a public
-   bucket URL.
-5. **Sentry** (sentry.io, optional but recommended before real tenants): new
-   project → PHP/Laravel → copy the DSN into `SENTRY_LARAVEL_DSN`.
-6. Push to `main` (or click **Manual Deploy** the first time) — Render builds
+4. Push to `main` (or click **Manual Deploy** the first time) — Render builds
    the Dockerfile and deploys both services.
+
+## Optional upgrades (add later, not needed to go live)
+
+- **Redis** (`CACHE_STORE=redis`, `SESSION_DRIVER=redis`, `REDIS_URL`) —
+  Render's own **Key Value** now requires a paid plan; **Upstash**
+  (upstash.com, free, no card) is a drop-in alternative — create a Redis
+  database, copy its `rediss://...` URL into `REDIS_URL`.
+- **S3-compatible storage** (`FILESYSTEM_DISK=s3` + `AWS_*`) — needed once you
+  want employee-document/task-attachment uploads to survive a redeploy
+  (Render's own disk is wiped on every deploy). Any of AWS S3, Cloudflare R2,
+  or DigitalOcean Spaces work — set `AWS_ENDPOINT` for a non-AWS provider and
+  keep `AWS_USE_PATH_STYLE_ENDPOINT=true`. Create a **private** bucket —
+  documents are served only through signed URLs (see `CLAUDE.md` rule 8),
+  never a public bucket URL.
+- **Sentry** (sentry.io) — new project → PHP/Laravel → paste the DSN into
+  `SENTRY_LARAVEL_DSN`. Recommended before real tenants, not before.
+- **A real background worker** — needs a paid Render plan (`type: worker`
+  isn't available on free). Re-add it to `render.yaml` per the comment at the
+  bottom of that file once you're ready to pay.
 
 ## After the first deploy
 
@@ -107,7 +122,7 @@ curl http://localhost:8080/up   # expect 200
 | Rate limiting configured | ✅ `throttle:60,1` general, `throttle:6,1` auth |
 | Validation + authorization on every write endpoint | ✅ |
 | Signed/temporary URLs for private documents | ✅ employee documents, task attachments |
-| Queue workers for long-running jobs | ✅ this deploy — nothing async yet queued by default, worker is ready |
+| Queue workers for long-running jobs | ⚠️ `QUEUE_CONNECTION=sync` on the free plan — jobs run inline, not async. Add Redis + a paid worker service (see "Optional upgrades") before anything queues real work |
 | DB backup and restore verified | ⚠️ **you must run the BACKUPS.md restore drill once** |
 | Error monitoring enabled | ⚠️ wired (Sentry), **needs a real DSN** to be "on" |
 | Audit logging for important actions | ✅ `spatie/laravel-activitylog` on Invoice/Payment/Refund/Employee/LeaveRequest/Booking/VisaApplication/Lead/Customer/Subscription, tenant-scoped, `GET /api/v1/activity` |
