@@ -8,7 +8,7 @@ services:
     runtime: docker
     dockerfilePath: docker/production/Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     region: singapore
     healthCheckPath: /up
     autoDeploy: true
@@ -34,7 +34,8 @@ services:
       - key: CACHE_STORE
         value: redis
       - key: QUEUE_CONNECTION
-        value: redis
+        value: sync # no paid worker dyno on the free plan; jobs run inline. Switch to
+        # `redis` + re-add a `type: worker` service (Starter+) once you're ready to pay.
       - key: SESSION_DRIVER
         value: redis
       - key: SESSION_SECURE_COOKIE
@@ -83,7 +84,7 @@ services:
     runtime: docker
     dockerfilePath: docker/production/Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     autoDeploy: true
     envVars:
       - key: CONTAINER_ROLE
@@ -119,64 +120,9 @@ services:
       - key: QUEUE_CONNECTION
         value: sync
 
-  - type: worker
-    name: bizops360-api-worker
-    runtime: docker
-    dockerfilePath: docker/production/Dockerfile
-    dockerContext: .
-    plan: starter
-    autoDeploy: true
-    envVars:
-      - key: CONTAINER_ROLE
-        value: worker
-      - key: APP_KEY
-        fromService:
-          type: web
-          name: bizops360-api
-          envVarKey: APP_KEY
-      - key: DB_URL
-        fromService:
-          type: web
-          name: bizops360-api
-          envVarKey: DB_URL
-      - key: REDIS_URL
-        fromService:
-          type: web
-          name: bizops360-api
-          envVarKey: REDIS_URL
-      - key: AWS_ACCESS_KEY_ID
-        fromService:
-          type: web
-          name: bizops360-api
-          envVarKey: AWS_ACCESS_KEY_ID
-      - key: AWS_SECRET_ACCESS_KEY
-        fromService:
-          type: web
-          name: bizops360-api
-          envVarKey: AWS_SECRET_ACCESS_KEY
-      - key: AWS_DEFAULT_REGION
-        fromService:
-          type: web
-          name: bizops360-api
-          envVarKey: AWS_DEFAULT_REGION
-      - key: AWS_BUCKET
-        fromService:
-          type: web
-          name: bizops360-api
-          envVarKey: AWS_BUCKET
-      - key: APP_ENV
-        value: production
-      - key: APP_DEBUG
-        value: "false"
-      - key: DB_CONNECTION
-        value: pgsql
-      - key: CACHE_STORE
-        value: redis
-      - key: QUEUE_CONNECTION
-        value: redis
-      - key: FILESYSTEM_DISK
-        value: s3
-      - key: SENTRY_LARAVEL_DSN
-        sync: false
-      - key: SENTRY_ENVIRONMENT
-        value: production
+# A dedicated `type: worker` service (queue processing off the request/response
+# cycle) requires a paid Render plan — free plan supports only `web` services.
+# QUEUE_CONNECTION=sync above runs jobs inline instead. To restore a real worker
+# once you're on a paid plan, re-add a `type: worker` service here with
+# `plan: starter`, `QUEUE_CONNECTION=redis`, and env vars sourced via
+# `fromService` from `bizops360-api` (APP_KEY, DB_URL, REDIS_URL, AWS_*).
