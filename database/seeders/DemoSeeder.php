@@ -68,8 +68,8 @@ use App\Modules\Industry\RealEstate\Actions\CompleteSiteVisit;
 use App\Modules\Industry\RealEstate\Actions\ConfirmBooking;
 use App\Modules\Industry\RealEstate\Actions\CounterOffer;
 use App\Modules\Industry\RealEstate\Actions\CreateInstallmentPlan;
-use App\Modules\Industry\RealEstate\Actions\CreatePropertyRequirement;
 use App\Modules\Industry\RealEstate\Actions\CreateProject;
+use App\Modules\Industry\RealEstate\Actions\CreatePropertyRequirement;
 use App\Modules\Industry\RealEstate\Actions\GenerateInstallmentInvoice;
 use App\Modules\Industry\RealEstate\Actions\MakeOffer;
 use App\Modules\Industry\RealEstate\Actions\MatchRequirementToUnits;
@@ -122,10 +122,10 @@ use App\Modules\Industry\Travel\Models\Booking;
 use App\Modules\Operations\Actions\AddTaskComment;
 use App\Modules\Operations\Actions\AssignTask;
 use App\Modules\Operations\Actions\ChangeTaskStatus;
-use App\Modules\Operations\Actions\CreateProject;
+use App\Modules\Operations\Actions\CreateProject as CreateOperationsProject;
 use App\Modules\Operations\Actions\CreateTask;
 use App\Modules\Operations\Actions\UploadTaskAttachment;
-use App\Modules\Operations\Data\ProjectData;
+use App\Modules\Operations\Data\ProjectData as OperationsProjectData;
 use App\Modules\Operations\Data\TaskAssignmentData;
 use App\Modules\Operations\Data\TaskCommentData;
 use App\Modules\Operations\Data\TaskData;
@@ -571,8 +571,8 @@ class DemoSeeder extends Seeder
             ? Employee::query()->where('tenant_id', $tenant->getKey())->where('user_id', $staffUser->getKey())->first()
             : null;
 
-        $project = app(CreateProject::class)->handle(
-            new ProjectData(
+        $project = app(CreateOperationsProject::class)->handle(
+            new OperationsProjectData(
                 departmentId: $salesDept?->getKey(),
                 leadEmployeeId: $staffEmployee?->getKey(),
                 name: 'Client Onboarding Rollout',
