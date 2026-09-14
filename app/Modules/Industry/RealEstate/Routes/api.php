@@ -18,7 +18,7 @@ use App\Modules\Industry\RealEstate\Http\Controllers\Api\V1\UnitController;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('api/v1')
+Route::prefix('api/v1/real-estate')
     ->middleware([
         ForceJsonResponse::class,
         'auth:sanctum',
@@ -95,7 +95,7 @@ Route::prefix('api/v1')
 // tenant, so — like Billing's `platform/analytics` — this sits outside the
 // `tenant`/`industry:real_estate` gate entirely and relies solely on the
 // `platform_admin` middleware.
-Route::prefix('api/v1')
+Route::prefix('api/v1/real-estate')
     ->middleware([
         ForceJsonResponse::class,
         'auth:sanctum',
