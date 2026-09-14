@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Actions;
 
 use App\Models\User;
+use App\Modules\Billing\Http\Middleware\EnsurePlatformAdmin;
+use App\Modules\Industry\RealEstate\Actions\Concerns\InteractsWithTenant;
 use App\Modules\Industry\RealEstate\Data\VerifyProjectData;
 use App\Modules\Industry\RealEstate\Domain\ProjectStatus;
 use App\Modules\Industry\RealEstate\Domain\VerificationDecision;
@@ -18,10 +20,10 @@ use Illuminate\Validation\ValidationException;
  * A platform admin approves a project's verification submission (basic
  * Pending/Verified/Rejected only, manual document review — no OCR in Phase 1;
  * see roadmap §7). Deliberately does NOT use the tenant-scoped
- * {@see \App\Modules\Industry\RealEstate\Actions\Concerns\InteractsWithTenant}
+ * {@see InteractsWithTenant}
  * guard: a platform admin has `tenant_id = null` and reviews across every
  * tenant, so the route this action serves runs outside the `tenant`/`industry`
- * middleware entirely (see {@see \App\Modules\Billing\Http\Middleware\EnsurePlatformAdmin}
+ * middleware entirely (see {@see EnsurePlatformAdmin}
  * for the same pattern in Billing).
  */
 class VerifyProject

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Domain;
 
+use App\Modules\Industry\RealEstate\Models\RealEstateBooking;
+
 /**
- * Lifecycle of a {@see \App\Modules\Industry\RealEstate\Models\RealEstateBooking}
+ * Lifecycle of a {@see RealEstateBooking}
  * — buying a unit, not a Travel-style trip booking (kept in its own table and
  * enum on purpose; see the model docblock).
  */

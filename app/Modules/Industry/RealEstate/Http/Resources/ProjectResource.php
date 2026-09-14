@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Http\Resources;
 
+use App\Modules\Industry\RealEstate\Models\LandRecord;
+use App\Modules\Industry\RealEstate\Models\ProjectDocument;
 use App\Modules\Industry\RealEstate\Models\RealEstateProject;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * The buyer-facing (and seller-facing) shape of a project. Deliberately never
- * includes {@see \App\Modules\Industry\RealEstate\Models\LandRecord} (legal/
- * private) or {@see \App\Modules\Industry\RealEstate\Models\ProjectDocument}
+ * includes {@see LandRecord} (legal/
+ * private) or {@see ProjectDocument}
  * (private files) — those are served, Policy-gated, through their own
  * dedicated endpoints only.
  *

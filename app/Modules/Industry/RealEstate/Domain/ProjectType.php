@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Domain;
 
+use App\Modules\Industry\RealEstate\Models\LandRecord;
+use App\Modules\Industry\RealEstate\Models\LandShare;
+use App\Modules\Industry\RealEstate\Models\RealEstateProject;
+
 /**
- * How a {@see \App\Modules\Industry\RealEstate\Models\RealEstateProject} is
- * structured commercially. `LandShare` projects carry {@see \App\Modules\Industry\RealEstate\Models\LandShare}
- * and {@see \App\Modules\Industry\RealEstate\Models\LandRecord} rows in addition
+ * How a {@see RealEstateProject} is
+ * structured commercially. `LandShare` projects carry {@see LandShare}
+ * and {@see LandRecord} rows in addition
  * to the usual building/unit inventory.
  */
 enum ProjectType: string

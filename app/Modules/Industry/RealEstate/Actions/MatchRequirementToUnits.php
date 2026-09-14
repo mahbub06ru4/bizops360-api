@@ -183,7 +183,7 @@ class MatchRequirementToUnits
 
         foreach ($needles as $needle) {
             foreach ($haystacks as $haystack) {
-                if ($needle !== '' && (str_contains($haystack, $needle) || str_contains($needle, $haystack))) {
+                if (str_contains($haystack, $needle) || str_contains($needle, $haystack)) {
                     return true;
                 }
             }

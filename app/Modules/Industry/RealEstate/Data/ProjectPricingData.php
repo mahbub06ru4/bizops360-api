@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Data;
 
 use App\Modules\Finance\Domain\Money;
+use App\Modules\Industry\RealEstate\Actions\SetProjectPricing;
 
 /**
  * Application input for setting a project's cost breakdown. `estimated_total`
- * is never taken from the client — {@see \App\Modules\Industry\RealEstate\Actions\SetProjectPricing}
+ * is never taken from the client — {@see SetProjectPricing}
  * computes it from the three cost lines.
  */
 final readonly class ProjectPricingData

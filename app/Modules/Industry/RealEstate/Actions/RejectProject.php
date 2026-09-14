@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Actions;
 
 use App\Models\User;
+use App\Modules\Industry\RealEstate\Actions\Concerns\InteractsWithTenant;
 use App\Modules\Industry\RealEstate\Data\RejectProjectData;
 use App\Modules\Industry\RealEstate\Domain\ProjectStatus;
 use App\Modules\Industry\RealEstate\Domain\VerificationDecision;
@@ -20,7 +21,7 @@ use Illuminate\Validation\ValidationException;
  * \App\Modules\Industry\RealEstate\Actions\SubmitProjectForVerification}
  * already accepts a `rejected` project back into the queue.
  *
- * Same deliberate omission of {@see \App\Modules\Industry\RealEstate\Actions\Concerns\InteractsWithTenant}
+ * Same deliberate omission of {@see InteractsWithTenant}
  * as {@see VerifyProject} — see that class's docblock.
  */
 class RejectProject

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Http\Resources;
 
 use App\Modules\Industry\RealEstate\Models\LandRecord;
+use App\Modules\Industry\RealEstate\Policies\LandRecordPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Legal/private land data. Only ever served behind {@see \App\Modules\Industry\RealEstate\Policies\LandRecordPolicy} —
+ * Legal/private land data. Only ever served behind {@see LandRecordPolicy} —
  * never embedded in {@see ProjectResource}.
  *
  * @mixin LandRecord

@@ -24,6 +24,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'tenant' => new TenantResource($this->whenLoaded('tenant')),
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')->all()),
+            'is_platform_admin' => (bool) $this->is_platform_admin,
             'permissions' => $this->when(
                 $request->user()?->is($this->resource) ?? false,
                 fn () => $this->getAllPermissions()->pluck('name')->all(),

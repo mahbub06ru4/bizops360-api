@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Models;
 
 use App\Models\User;
+use App\Modules\Industry\RealEstate\Actions\RejectProject;
+use App\Modules\Industry\RealEstate\Actions\VerifyProject;
 use App\Modules\Industry\RealEstate\Database\Factories\VerificationReviewFactory;
 use App\Modules\Industry\RealEstate\Domain\VerificationDecision;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
@@ -18,8 +20,8 @@ use Illuminate\Support\Carbon;
  * The platform admin's verdict on a {@see RealEstateProject}'s submission for
  * verification. Basic Pending/Verified/Rejected only, manual document review
  * — no OCR (roadmap Phase 1 gating note). Written only by
- * {@see \App\Modules\Industry\RealEstate\Actions\VerifyProject} and
- * {@see \App\Modules\Industry\RealEstate\Actions\RejectProject}, both gated to
+ * {@see VerifyProject} and
+ * {@see RejectProject}, both gated to
  * platform admins.
  *
  * @property int $id

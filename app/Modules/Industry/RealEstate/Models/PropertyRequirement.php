@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Models;
 
 use App\Modules\CRM\Models\Lead;
+use App\Modules\Industry\RealEstate\Actions\MatchRequirementToUnits;
 use App\Modules\Industry\RealEstate\Database\Factories\PropertyRequirementFactory;
 use App\Modules\Industry\RealEstate\Domain\RequirementPurpose;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
@@ -18,7 +19,7 @@ use Illuminate\Support\Carbon;
 /**
  * What a {@see Lead} says they are looking for — budget range, preferred
  * areas (free-form strings; no geo lookup in Phase 1), unit type, and minimum
- * bedrooms. Feeds the rule-based {@see \App\Modules\Industry\RealEstate\Actions\MatchRequirementToUnits}
+ * bedrooms. Feeds the rule-based {@see MatchRequirementToUnits}
  * scorer, never an AI/NLP model (that is roadmap Phase 4).
  *
  * @property int $id

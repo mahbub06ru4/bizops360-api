@@ -10,6 +10,7 @@ use App\Modules\Finance\Data\InvoiceData;
 use App\Modules\Industry\RealEstate\Actions\Concerns\InteractsWithTenant;
 use App\Modules\Industry\RealEstate\Domain\InstallmentStatus;
 use App\Modules\Industry\RealEstate\Models\Installment;
+use App\Modules\Industry\Travel\Actions\RaiseInvoiceForBooking;
 use App\Modules\Tenant\Context\TenantContext;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Raises a Finance invoice for a due installment and links the two — mirrors
- * {@see \App\Modules\Industry\Travel\Actions\RaiseInvoiceForBooking}: the
+ * {@see RaiseInvoiceForBooking}: the
  * invoice is created entirely through Finance's own {@see CreateInvoice}
  * action, RealEstate never touches Finance's models directly.
  */
@@ -52,8 +53,8 @@ class GenerateInstallmentInvoice
         }
 
         $unit = $booking->unit;
-        $project = $unit?->building?->project;
-        $label = $project !== null && $unit !== null
+        $project = $unit->building?->project;
+        $label = $project !== null
             ? "{$project->name} — unit {$unit->unit_number}, installment #{$installment->sequence}"
             : "Installment #{$installment->sequence}";
 

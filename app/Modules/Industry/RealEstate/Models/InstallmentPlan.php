@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Models;
 
+use App\Modules\Industry\RealEstate\Actions\CreateInstallmentPlan;
 use App\Modules\Industry\RealEstate\Database\Factories\InstallmentPlanFactory;
 use App\Modules\Industry\RealEstate\Domain\PaymentPlanFrequency;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
@@ -17,7 +18,7 @@ use Illuminate\Support\Carbon;
 /**
  * The payment schedule for one {@see RealEstateBooking} — a down payment plus
  * an even split of the remainder across `installment_count` {@see Installment}
- * rows, generated together in {@see \App\Modules\Industry\RealEstate\Actions\CreateInstallmentPlan}.
+ * rows, generated together in {@see CreateInstallmentPlan}.
  * One plan per booking (enforced by a unique index on `booking_id`).
  *
  * @property int $id

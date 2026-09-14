@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Models;
 
 use App\Modules\Industry\RealEstate\Database\Factories\LandRecordFactory;
+use App\Modules\Industry\RealEstate\Http\Resources\ProjectResource;
+use App\Modules\Industry\RealEstate\Policies\LandRecordPolicy;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,8 +17,8 @@ use Illuminate\Support\Carbon;
 /**
  * The legal land record backing a `land_share`/`plot` {@see RealEstateProject}
  * — mouza, JL/khatian/dag numbers. Admin-only visibility: gated by
- * {@see \App\Modules\Industry\RealEstate\Policies\LandRecordPolicy}, never
- * exposed through {@see \App\Modules\Industry\RealEstate\Http\Resources\ProjectResource}.
+ * {@see LandRecordPolicy}, never
+ * exposed through {@see ProjectResource}.
  *
  * @property int $id
  * @property int $tenant_id

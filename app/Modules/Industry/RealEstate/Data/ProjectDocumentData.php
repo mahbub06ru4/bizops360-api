@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Data;
 
+use App\Modules\Industry\RealEstate\Actions\UploadProjectDocument;
 use App\Modules\Industry\RealEstate\Domain\ProjectDocumentType;
+use Illuminate\Http\UploadedFile;
 
 /**
  * Application input for uploading a project document — the binary itself is
- * handled separately as an {@see \Illuminate\Http\UploadedFile} by
- * {@see \App\Modules\Industry\RealEstate\Actions\UploadProjectDocument}.
+ * handled separately as an {@see UploadedFile} by
+ * {@see UploadProjectDocument}.
  */
 final readonly class ProjectDocumentData
 {

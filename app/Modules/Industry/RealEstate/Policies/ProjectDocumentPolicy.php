@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Policies;
 
 use App\Models\User;
+use App\Modules\Industry\RealEstate\Http\Resources\ProjectResource;
 use App\Modules\Industry\RealEstate\Models\ProjectDocument;
 
 /**
  * Project documents are private files (RAJUK approval, land deed, …) —
  * tenant staff with `project_document.view` only, never a public/buyer
- * audience, and never embedded in {@see \App\Modules\Industry\RealEstate\Http\Resources\ProjectResource}.
+ * audience, and never embedded in {@see ProjectResource}.
  */
 class ProjectDocumentPolicy
 {

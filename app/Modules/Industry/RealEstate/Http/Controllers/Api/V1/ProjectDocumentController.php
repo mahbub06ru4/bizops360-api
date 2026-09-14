@@ -13,6 +13,7 @@ use App\Modules\Industry\RealEstate\Models\ProjectDocument;
 use App\Modules\Industry\RealEstate\Models\RealEstateProject;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\UploadedFile;
 
 /**
  * Private project documents (RAJUK approval, land deed, mutation, …).
@@ -38,7 +39,7 @@ class ProjectDocumentController extends Controller
 
         /** @var User $user */
         $user = $request->user();
-        /** @var \Illuminate\Http\UploadedFile $file */
+        /** @var UploadedFile $file */
         $file = $request->file('file');
 
         return ProjectDocumentResource::make($action->handle($project, $request->toData(), $file, $user))

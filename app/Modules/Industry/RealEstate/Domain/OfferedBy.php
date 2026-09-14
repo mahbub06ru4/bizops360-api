@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Domain;
 
+use App\Modules\Industry\RealEstate\Models\Offer;
+
 /**
- * Who initiated an {@see \App\Modules\Industry\RealEstate\Models\Offer} in the
+ * Who initiated an {@see Offer} in the
  * negotiation chain. Phase 1 has no buyer-side authentication yet, so this is
  * a record of intent captured by tenant staff on the lead's behalf — not an
  * access-control distinction.

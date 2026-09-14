@@ -5,17 +5,19 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Policies;
 
 use App\Models\User;
+use App\Modules\Authorization\Roles;
+use App\Modules\Billing\Http\Middleware\EnsurePlatformAdmin;
 use App\Modules\Industry\RealEstate\Models\VerificationReview;
 
 /**
  * Verification is a platform-admin-only, cross-tenant operation gated by the
  * `platform_admin` middleware on the route itself (see
- * {@see \App\Modules\Billing\Http\Middleware\EnsurePlatformAdmin} and the
+ * {@see EnsurePlatformAdmin} and the
  * verify/reject routes in the RealEstate route file) — this Policy exists so
  * a `VerificationReview` behaves like every other tenant-owned model if it is
  * ever read from a tenant-scoped context (e.g. a seller viewing why their own
  * project was rejected), but it deliberately grants no tenant role
- * `verification_review.*` permission (see {@see \App\Modules\Authorization\Roles}):
+ * `verification_review.*` permission (see {@see Roles}):
  * no tenant staff should ever be grantable into approving their own
  * submissions.
  */

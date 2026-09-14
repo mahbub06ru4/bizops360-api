@@ -20,6 +20,7 @@ use App\Modules\Industry\RealEstate\Models\Building;
 use App\Modules\Industry\RealEstate\Models\Unit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Http\UploadedFile;
 
 class UnitController extends Controller
 {
@@ -58,7 +59,7 @@ class UnitController extends Controller
     {
         $this->authorize('update', $unit);
 
-        /** @var \Illuminate\Http\UploadedFile $file */
+        /** @var UploadedFile $file */
         $file = $request->file('file');
 
         return UnitMediaResource::make($action->handle($unit, $request->toData(), $file))

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Policies;
 
 use App\Models\User;
+use App\Modules\Authorization\Roles;
 use App\Modules\Industry\RealEstate\Models\LandRecord;
 
 /**
  * Legal/private land data (mouza, JL/khatian/dag no.). Only `owner`/`admin`
- * hold `land_record.view`/`land_record.manage` (see {@see \App\Modules\Authorization\Roles})
+ * hold `land_record.view`/`land_record.manage` (see {@see Roles})
  * — never exposed to a manager, staff, or buyer audience.
  */
 class LandRecordPolicy

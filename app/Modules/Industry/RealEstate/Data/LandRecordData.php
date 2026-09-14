@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Data;
 
+use App\Modules\Industry\RealEstate\Policies\LandRecordPolicy;
+
 /**
  * Application input for a project's land record (mouza, JL/khatian/dag no.).
- * Admin-only — see {@see \App\Modules\Industry\RealEstate\Policies\LandRecordPolicy}.
+ * Admin-only — see {@see LandRecordPolicy}.
  */
 final readonly class LandRecordData
 {

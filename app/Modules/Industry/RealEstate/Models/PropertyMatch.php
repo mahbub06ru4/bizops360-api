@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Models;
 
+use App\Modules\Industry\RealEstate\Actions\MatchRequirementToUnits;
 use App\Modules\Industry\RealEstate\Database\Factories\PropertyMatchFactory;
 use App\Modules\Industry\RealEstate\Domain\PropertyMatchStatus;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
@@ -15,7 +16,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * A unit suggested against a {@see PropertyRequirement} by the rule-based
- * scorer in {@see \App\Modules\Industry\RealEstate\Actions\MatchRequirementToUnits}
+ * scorer in {@see MatchRequirementToUnits}
  * — never AI/NLP (roadmap Phase 4 territory).
  *
  * @property int $id

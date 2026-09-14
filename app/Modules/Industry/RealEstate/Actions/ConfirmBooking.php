@@ -6,6 +6,7 @@ namespace App\Modules\Industry\RealEstate\Actions;
 
 use App\Models\User;
 use App\Modules\CRM\Actions\ConvertLead;
+use App\Modules\CRM\Models\Lead;
 use App\Modules\Industry\RealEstate\Actions\Concerns\InteractsWithTenant;
 use App\Modules\Industry\RealEstate\Domain\BookingStatus;
 use App\Modules\Industry\RealEstate\Domain\UnitStatus;
@@ -18,7 +19,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Finalises a reservation into a sale: marks the unit `sold`, and converts
  * the lead into a CRM customer through CRM's own {@see ConvertLead} action —
- * never by writing to the {@see \App\Modules\CRM\Models\Lead} model directly.
+ * never by writing to the {@see Lead} model directly.
  */
 class ConfirmBooking
 {
