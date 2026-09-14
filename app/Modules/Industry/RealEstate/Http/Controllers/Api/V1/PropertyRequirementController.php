@@ -40,7 +40,7 @@ class PropertyRequirementController extends Controller
     {
         $this->authorize('view', $requirement);
 
-        return PropertyRequirementResource::make($requirement->load(['lead', 'matches.unit']));
+        return PropertyRequirementResource::make($requirement->load(['lead', 'matches.unit.building.project']));
     }
 
     public function match(PropertyRequirement $requirement, MatchRequirementToUnits $action): AnonymousResourceCollection

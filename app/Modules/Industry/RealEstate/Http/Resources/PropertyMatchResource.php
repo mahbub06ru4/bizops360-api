@@ -25,6 +25,10 @@ class PropertyMatchResource extends JsonResource
             'match_score' => $this->match_score,
             'status' => $this->status->value,
             'unit' => new UnitResource($this->whenLoaded('unit')),
+            'project' => $this->whenLoaded('unit', fn () => $this->unit->building?->project === null ? null : [
+                'id' => $this->unit->building->project->id,
+                'name' => $this->unit->building->project->name,
+            ]),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }
