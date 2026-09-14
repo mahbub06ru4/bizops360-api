@@ -8,6 +8,7 @@ use App\Modules\CRM\Models\Customer;
 use App\Modules\CRM\Models\Lead;
 use App\Modules\Industry\RealEstate\Database\Factories\RealEstateBookingFactory;
 use App\Modules\Industry\RealEstate\Domain\BookingStatus;
+use App\Modules\Industry\Travel\Models\Booking;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,7 +19,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * A unit purchase moving through reserve → book → complete. Deliberately its
- * own table/model — not a reuse of {@see \App\Modules\Industry\Travel\Models\Booking}
+ * own table/model — not a reuse of {@see Booking}
  * — because buying a unit is a semantically different, vertical-specific
  * concept from a travel booking, even though both use the word "booking".
  *

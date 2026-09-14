@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Domain;
 
+use App\Modules\Industry\RealEstate\Models\Unit;
+
 /**
- * Sales state of a single {@see \App\Modules\Industry\RealEstate\Models\Unit}.
+ * Sales state of a single {@see Unit}.
  * Phase 1 (bookings/installments) will drive this transition; Phase 0 only
  * needs the column to exist and default sensibly.
  */

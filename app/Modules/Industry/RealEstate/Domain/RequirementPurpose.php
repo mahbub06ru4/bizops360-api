@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Domain;
 
+use App\Modules\Industry\RealEstate\Actions\MatchRequirementToUnits;
+
 /**
- * Why a lead is looking — drives how a {@see \App\Modules\Industry\RealEstate\Actions\MatchRequirementToUnits}
+ * Why a lead is looking — drives how a {@see MatchRequirementToUnits}
  * scorer and the sales team read the requirement; Phase 1 does not otherwise
  * change behaviour by purpose.
  */

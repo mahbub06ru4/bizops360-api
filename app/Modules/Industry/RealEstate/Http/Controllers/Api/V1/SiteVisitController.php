@@ -13,6 +13,7 @@ use App\Modules\Industry\RealEstate\Http\Requests\CompleteSiteVisitRequest;
 use App\Modules\Industry\RealEstate\Http\Requests\SiteVisitRequest;
 use App\Modules\Industry\RealEstate\Http\Resources\SiteVisitResource;
 use App\Modules\Industry\RealEstate\Models\SiteVisit;
+use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -24,7 +25,7 @@ class SiteVisitController extends Controller
 
     /**
      * Tenant-wide site-visit queue (across every lead) — the pipeline
-     * overview view. Scoped automatically by {@see \App\Modules\Tenant\Models\Concerns\BelongsToTenant}'s
+     * overview view. Scoped automatically by {@see BelongsToTenant}'s
      * global scope, same as every other tenant-owned index in this module.
      */
     public function all(Request $request): AnonymousResourceCollection

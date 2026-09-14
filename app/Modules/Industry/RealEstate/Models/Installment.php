@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Models;
 
 use App\Modules\Finance\Models\Invoice;
+use App\Modules\Industry\RealEstate\Actions\GenerateInstallmentInvoice;
+use App\Modules\Industry\RealEstate\Actions\MarkInstallmentPaid;
 use App\Modules\Industry\RealEstate\Database\Factories\InstallmentFactory;
 use App\Modules\Industry\RealEstate\Domain\InstallmentStatus;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
@@ -16,10 +18,10 @@ use Illuminate\Support\Carbon;
 
 /**
  * One due payment on an {@see InstallmentPlan}. `invoice_id` is only set once
- * {@see \App\Modules\Industry\RealEstate\Actions\GenerateInstallmentInvoice}
+ * {@see GenerateInstallmentInvoice}
  * raises a Finance invoice for it — Phase 1 has no payment-gateway webhook, so
  * `status` moves to `paid` only via the manual/admin-triggered
- * {@see \App\Modules\Industry\RealEstate\Actions\MarkInstallmentPaid}.
+ * {@see MarkInstallmentPaid}.
  *
  * @property int $id
  * @property int $tenant_id

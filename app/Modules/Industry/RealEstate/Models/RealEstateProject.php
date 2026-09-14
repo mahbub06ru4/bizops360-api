@@ -6,6 +6,7 @@ namespace App\Modules\Industry\RealEstate\Models;
 
 use App\Models\User;
 use App\Modules\Audit\Concerns\LogsBusinessActivity;
+use App\Modules\Industry\RealEstate\Actions\SubmitProjectForVerification;
 use App\Modules\Industry\RealEstate\Database\Factories\RealEstateProjectFactory;
 use App\Modules\Industry\RealEstate\Domain\ProjectStatus;
 use App\Modules\Industry\RealEstate\Domain\ProjectType;
@@ -26,7 +27,7 @@ use Illuminate\Support\Carbon;
  * {@see ProjectPaymentPlan}, and for land-share projects {@see LandRecord} /
  * {@see LandShare} — hangs off this row.
  *
- * Starts life `draft`; {@see \App\Modules\Industry\RealEstate\Actions\SubmitProjectForVerification}
+ * Starts life `draft`; {@see SubmitProjectForVerification}
  * moves it to `pending_verification` for the platform's admin review queue
  * (Phase 2). Never trust `status` client-side for trust badges — only a
  * `verified` project may claim RAJUK/REHAB approval publicly.

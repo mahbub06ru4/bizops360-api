@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Industry\RealEstate\Actions\Concerns;
 
 use App\Modules\Tenant\Context\TenantContext;
+use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Shared tenant guards for RealEstate actions. The global scope on
- * {@see \App\Modules\Tenant\Models\Concerns\BelongsToTenant} is a safety net;
+ * {@see BelongsToTenant} is a safety net;
  * these checks are the authoritative guarantee that an action never touches or
  * references another tenant's row.
  */

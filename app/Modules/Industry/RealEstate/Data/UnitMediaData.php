@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Data;
 
+use App\Modules\Industry\RealEstate\Actions\AddUnitMedia;
 use App\Modules\Industry\RealEstate\Domain\UnitMediaType;
+use Illuminate\Http\UploadedFile;
 
 /**
  * Application input for attaching a media row to a unit — the binary itself
- * is handled separately as an {@see \Illuminate\Http\UploadedFile} by
- * {@see \App\Modules\Industry\RealEstate\Actions\AddUnitMedia}.
+ * is handled separately as an {@see UploadedFile} by
+ * {@see AddUnitMedia}.
  */
 final readonly class UnitMediaData
 {

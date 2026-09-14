@@ -8,11 +8,12 @@ use App\Modules\Industry\RealEstate\Actions\Concerns\InteractsWithTenant;
 use App\Modules\Industry\RealEstate\Data\LandRecordData;
 use App\Modules\Industry\RealEstate\Models\LandRecord;
 use App\Modules\Industry\RealEstate\Models\RealEstateProject;
+use App\Modules\Industry\RealEstate\Policies\LandRecordPolicy;
 use App\Modules\Tenant\Context\TenantContext;
 
 /**
  * Records the legal land reference for a `land_share`/`plot` project. Only
- * reachable by tenant admins — see {@see \App\Modules\Industry\RealEstate\Policies\LandRecordPolicy}.
+ * reachable by tenant admins — see {@see LandRecordPolicy}.
  */
 class AddLandRecord
 {

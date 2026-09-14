@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Industry\RealEstate\Models;
 
+use App\Modules\Industry\RealEstate\Actions\SetProjectPricing;
 use App\Modules\Industry\RealEstate\Database\Factories\ProjectPricingFactory;
 use App\Modules\Tenant\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,7 +16,7 @@ use Illuminate\Support\Carbon;
 /**
  * The one cost breakdown for a {@see RealEstateProject} — land + construction +
  * consultancy rolling up into `estimated_total`, computed at write time by
- * {@see \App\Modules\Industry\RealEstate\Actions\SetProjectPricing}.
+ * {@see SetProjectPricing}.
  *
  * @property int $id
  * @property int $tenant_id
@@ -35,6 +36,11 @@ class ProjectPricing extends Model
 
     /** @use HasFactory<ProjectPricingFactory> */
     use HasFactory;
+
+    // The migration creates `project_pricing` (singular — one row per
+    // project); Eloquent's default pluralization would otherwise look for
+    // `project_pricings`.
+    protected $table = 'project_pricing';
 
     /** @return BelongsTo<RealEstateProject, $this> */
     public function project(): BelongsTo

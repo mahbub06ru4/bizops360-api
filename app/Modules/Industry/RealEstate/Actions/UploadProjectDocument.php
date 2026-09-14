@@ -9,6 +9,7 @@ use App\Modules\Industry\RealEstate\Actions\Concerns\InteractsWithTenant;
 use App\Modules\Industry\RealEstate\Data\ProjectDocumentData;
 use App\Modules\Industry\RealEstate\Models\ProjectDocument;
 use App\Modules\Industry\RealEstate\Models\RealEstateProject;
+use App\Modules\Industry\RealEstate\Policies\ProjectDocumentPolicy;
 use App\Modules\Tenant\Context\TenantContext;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
@@ -16,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Stores a private project document (RAJUK approval, land deed, mutation, …)
  * on the configured disk under a tenant/project-scoped path. Never surface
- * this file through a public URL — see {@see \App\Modules\Industry\RealEstate\Policies\ProjectDocumentPolicy}.
+ * this file through a public URL — see {@see ProjectDocumentPolicy}.
  */
 class UploadProjectDocument
 {
