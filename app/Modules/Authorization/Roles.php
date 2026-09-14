@@ -182,6 +182,54 @@ final class Roles
 
             'travel.view_dashboard',
 
+            'real_estate_project.view',
+            'real_estate_project.view_all',
+            'real_estate_project.create',
+            'real_estate_project.update',
+            'real_estate_project.submit',
+            'real_estate_project.delete',
+
+            'building.view',
+            'building.create',
+            'building.update',
+            'building.delete',
+
+            'unit.view',
+            'unit.create',
+            'unit.update',
+            'unit.delete',
+
+            'amenity.view',
+            'amenity.create',
+            'amenity.delete',
+
+            'project_document.view',
+            'project_document.upload',
+
+            'land_record.view',
+            'land_record.manage',
+
+            'property_requirement.view',
+            'property_requirement.create',
+            'property_requirement.update',
+
+            'site_visit.view',
+            'site_visit.create',
+            'site_visit.update',
+
+            'offer.view',
+            'offer.create',
+            'offer.update',
+
+            'real_estate_booking.view',
+            'real_estate_booking.create',
+            'real_estate_booking.update',
+
+            'installment.view',
+            'installment.manage',
+
+            'real_estate.view_dashboard',
+
             'audit.view',
 
             'billing.view',
@@ -232,6 +280,18 @@ final class Roles
                 'visa_application.update', 'visa_application.submit', 'visa_application.decide',
                 'booking.view', 'booking.view_all', 'booking.create', 'booking.update',
                 'booking.issue', 'booking.cancel', 'booking.invoice', 'travel.view_dashboard',
+                'real_estate_project.view', 'real_estate_project.view_all', 'real_estate_project.create',
+                'real_estate_project.update', 'real_estate_project.submit',
+                'building.view', 'building.create', 'building.update', 'building.delete',
+                'unit.view', 'unit.create', 'unit.update', 'unit.delete',
+                'amenity.view', 'amenity.create', 'amenity.delete',
+                'project_document.view', 'project_document.upload',
+                'property_requirement.view', 'property_requirement.create', 'property_requirement.update',
+                'site_visit.view', 'site_visit.create', 'site_visit.update',
+                'offer.view', 'offer.create', 'offer.update',
+                'real_estate_booking.view', 'real_estate_booking.create', 'real_estate_booking.update',
+                'installment.view', 'installment.manage',
+                'real_estate.view_dashboard',
                 'audit.view', 'billing.view',
             ],
             self::STAFF => [
@@ -269,6 +329,32 @@ final class Roles
                 'booking.view',
                 'booking.create',
                 'booking.update',
+                'real_estate_project.view',
+                'real_estate_project.create',
+                'real_estate_project.update',
+                'building.view',
+                'building.create',
+                'building.update',
+                'unit.view',
+                'unit.create',
+                'unit.update',
+                'amenity.view',
+                'amenity.create',
+                'project_document.view',
+                'project_document.upload',
+                'property_requirement.view',
+                'property_requirement.create',
+                'property_requirement.update',
+                'site_visit.view',
+                'site_visit.create',
+                'site_visit.update',
+                'offer.view',
+                'offer.create',
+                'offer.update',
+                'real_estate_booking.view',
+                'real_estate_booking.create',
+                'real_estate_booking.update',
+                'installment.view',
             ],
         ];
     }

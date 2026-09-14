@@ -7,6 +7,7 @@ use App\Modules\CRM\Providers\CRMServiceProvider;
 use App\Modules\Finance\Providers\FinanceServiceProvider;
 use App\Modules\HR\Providers\HRServiceProvider;
 use App\Modules\Identity\Providers\IdentityServiceProvider;
+use App\Modules\Industry\RealEstate\Providers\RealEstateServiceProvider;
 use App\Modules\Industry\Travel\Providers\TravelServiceProvider;
 use App\Modules\Notifications\Providers\NotificationsServiceProvider;
 use App\Modules\Operations\Providers\OperationsServiceProvider;
@@ -25,6 +26,7 @@ return [
     CRMServiceProvider::class,
     FinanceServiceProvider::class,
     TravelServiceProvider::class,
+    RealEstateServiceProvider::class,
     AuditServiceProvider::class,
     BillingServiceProvider::class,
 ];

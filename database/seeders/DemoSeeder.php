@@ -55,6 +55,59 @@ use App\Modules\HR\Domain\AttendanceStatus;
 use App\Modules\HR\Domain\EmployeeDocumentCategory;
 use App\Modules\HR\Models\Holiday;
 use App\Modules\HR\Models\LeaveType;
+use App\Modules\Industry\RealEstate\Actions\AcceptOffer;
+use App\Modules\Industry\RealEstate\Actions\AddAmenity;
+use App\Modules\Industry\RealEstate\Actions\AddBuilding;
+use App\Modules\Industry\RealEstate\Actions\AddLandRecord;
+use App\Modules\Industry\RealEstate\Actions\AddLandShare;
+use App\Modules\Industry\RealEstate\Actions\AddPaymentPlan;
+use App\Modules\Industry\RealEstate\Actions\AddProjectLocation;
+use App\Modules\Industry\RealEstate\Actions\AddUnit;
+use App\Modules\Industry\RealEstate\Actions\AddUnitMedia;
+use App\Modules\Industry\RealEstate\Actions\CompleteSiteVisit;
+use App\Modules\Industry\RealEstate\Actions\ConfirmBooking;
+use App\Modules\Industry\RealEstate\Actions\CounterOffer;
+use App\Modules\Industry\RealEstate\Actions\CreateInstallmentPlan;
+use App\Modules\Industry\RealEstate\Actions\CreatePropertyRequirement;
+use App\Modules\Industry\RealEstate\Actions\CreateProject;
+use App\Modules\Industry\RealEstate\Actions\GenerateInstallmentInvoice;
+use App\Modules\Industry\RealEstate\Actions\MakeOffer;
+use App\Modules\Industry\RealEstate\Actions\MatchRequirementToUnits;
+use App\Modules\Industry\RealEstate\Actions\ReserveUnit;
+use App\Modules\Industry\RealEstate\Actions\ScheduleSiteVisit;
+use App\Modules\Industry\RealEstate\Actions\SetProjectPricing;
+use App\Modules\Industry\RealEstate\Actions\SetUnitPrice;
+use App\Modules\Industry\RealEstate\Actions\SubmitProjectForVerification;
+use App\Modules\Industry\RealEstate\Actions\UploadProjectDocument;
+use App\Modules\Industry\RealEstate\Actions\VerifyProject;
+use App\Modules\Industry\RealEstate\Data\AmenityData;
+use App\Modules\Industry\RealEstate\Data\BuildingData;
+use App\Modules\Industry\RealEstate\Data\CompleteSiteVisitData;
+use App\Modules\Industry\RealEstate\Data\CounterOfferData;
+use App\Modules\Industry\RealEstate\Data\InstallmentPlanData;
+use App\Modules\Industry\RealEstate\Data\LandRecordData;
+use App\Modules\Industry\RealEstate\Data\LandShareData;
+use App\Modules\Industry\RealEstate\Data\MakeOfferData;
+use App\Modules\Industry\RealEstate\Data\PaymentPlanData;
+use App\Modules\Industry\RealEstate\Data\ProjectData;
+use App\Modules\Industry\RealEstate\Data\ProjectDocumentData;
+use App\Modules\Industry\RealEstate\Data\ProjectLocationData;
+use App\Modules\Industry\RealEstate\Data\ProjectPricingData;
+use App\Modules\Industry\RealEstate\Data\PropertyRequirementData;
+use App\Modules\Industry\RealEstate\Data\SiteVisitData;
+use App\Modules\Industry\RealEstate\Data\UnitData;
+use App\Modules\Industry\RealEstate\Data\UnitMediaData;
+use App\Modules\Industry\RealEstate\Data\UnitPriceData;
+use App\Modules\Industry\RealEstate\Data\VerifyProjectData;
+use App\Modules\Industry\RealEstate\Domain\OfferedBy;
+use App\Modules\Industry\RealEstate\Domain\PaymentPlanFrequency;
+use App\Modules\Industry\RealEstate\Domain\ProjectDocumentType;
+use App\Modules\Industry\RealEstate\Domain\ProjectType;
+use App\Modules\Industry\RealEstate\Domain\RequirementPurpose;
+use App\Modules\Industry\RealEstate\Domain\UnitFacing;
+use App\Modules\Industry\RealEstate\Domain\UnitMediaType;
+use App\Modules\Industry\RealEstate\Domain\UnitPriceType;
+use App\Modules\Industry\RealEstate\Models\RealEstateProject;
 use App\Modules\Industry\Travel\Actions\CreateBooking;
 use App\Modules\Industry\Travel\Actions\IssueBooking;
 use App\Modules\Industry\Travel\Actions\OpenVisaApplication;
@@ -237,6 +290,10 @@ class DemoSeeder extends Seeder
 
             if ($spec['industry'] === 'travel') {
                 $this->seedTravel($tenant, $spec['slug']);
+            }
+
+            if ($spec['industry'] === 'real_estate') {
+                $this->seedRealEstate($tenant, $spec['slug']);
             }
 
             $this->seedOrgExtras($tenant, $spec['slug']);
@@ -1040,5 +1097,324 @@ class DemoSeeder extends Seeder
             ]),
             $owner,
         );
+    }
+
+    /**
+     * Real-estate demo data for a developer/agency tenant: a land-share
+     * project (with its location, land record, share structure, a building of
+     * units, amenities, pricing and a payment plan) submitted for
+     * verification, plus a second apartment project still in draft — matching
+     * the roadmap's Phase 0 definition of done ("a seller can create a fully
+     * structured land-share project ... and it renders correctly on a buyer
+     * detail screen").
+     */
+    private function seedRealEstate(Tenant $tenant, string $slug): void
+    {
+        if (RealEstateProject::query()->where('tenant_id', $tenant->getKey())->exists()) {
+            return;
+        }
+
+        $owner = User::where('email', "owner@{$slug}.test")->first();
+
+        if ($owner === null) {
+            return;
+        }
+
+        // Project one: a land-share development, fully structured and
+        // submitted for the platform's verification queue.
+        $landShareProject = app(CreateProject::class)->handle(
+            new ProjectData(
+                name: 'Uttara Diabari Heights',
+                projectType: ProjectType::LandShare,
+                description: 'A land-share residential development near Diabari Metro Station, Uttara, offered to shareholders ahead of construction.',
+                totalLandArea: '3.50',
+                currency: 'BDT',
+            ),
+            $owner,
+        );
+
+        app(AddProjectLocation::class)->handle(
+            $landShareProject,
+            new ProjectLocationData(
+                division: 'Dhaka',
+                district: 'Dhaka',
+                area: 'Uttara',
+                sector: '15',
+                road: 'Road 5',
+                landmark: 'Near Diabari Metro Station and the 300 Feet corridor',
+                latitude: '23.8759',
+                longitude: '90.3795',
+            ),
+        );
+
+        app(AddLandRecord::class)->handle(
+            $landShareProject,
+            new LandRecordData(
+                mouza: 'Diabari',
+                jlNo: '42',
+                khatianNo: 'BS-5821',
+                dagNo: '317',
+            ),
+        );
+
+        app(AddLandShare::class)->handle(
+            $landShareProject,
+            new LandShareData(totalShares: 200, shareValue: '250000.00'),
+        );
+
+        $landShareBuilding = app(AddBuilding::class)->handle(
+            $landShareProject,
+            new BuildingData(name: 'Tower A', totalFloors: 12),
+        );
+
+        $unitA1 = app(AddUnit::class)->handle(
+            $landShareBuilding,
+            new UnitData(
+                unitNumber: 'A-501',
+                floor: 5,
+                sizeSqft: '1450.00',
+                bedrooms: 3,
+                bathrooms: 3,
+                facing: UnitFacing::South,
+                parkingSpaces: 1,
+            ),
+        );
+        app(SetUnitPrice::class)->handle($unitA1, new UnitPriceData(price: '9500000.00', priceType: UnitPriceType::Base, effectiveFrom: now()->toDateString()));
+        app(AddUnitMedia::class)->handle(
+            $unitA1,
+            new UnitMediaData(mediaType: UnitMediaType::FloorPlan, sortOrder: 0),
+            UploadedFile::fake()->image('a-501-floor-plan.jpg'),
+        );
+
+        $unitA2 = app(AddUnit::class)->handle(
+            $landShareBuilding,
+            new UnitData(
+                unitNumber: 'A-701',
+                floor: 7,
+                sizeSqft: '1600.00',
+                bedrooms: 3,
+                bathrooms: 3,
+                facing: UnitFacing::East,
+                parkingSpaces: 1,
+            ),
+        );
+        app(SetUnitPrice::class)->handle($unitA2, new UnitPriceData(price: '10400000.00', priceType: UnitPriceType::Base, effectiveFrom: now()->toDateString()));
+
+        foreach (['Swimming Pool', 'Generator Backup', 'Underground Parking', 'Community Hall'] as $amenity) {
+            app(AddAmenity::class)->handle($landShareProject, new AmenityData(name: $amenity, icon: null));
+        }
+
+        app(SetProjectPricing::class)->handle(
+            $landShareProject,
+            new ProjectPricingData(
+                landCost: '45000000.00',
+                constructionCost: '70000000.00',
+                consultancyCost: '2500000.00',
+                currency: 'BDT',
+            ),
+        );
+
+        app(AddPaymentPlan::class)->handle(
+            $landShareProject,
+            new PaymentPlanData(
+                name: 'Standard 36-month plan',
+                downPaymentPercent: '20.00',
+                installmentCount: 36,
+                installmentFrequency: PaymentPlanFrequency::Monthly,
+            ),
+        );
+
+        app(UploadProjectDocument::class)->handle(
+            $landShareProject,
+            new ProjectDocumentData(documentType: ProjectDocumentType::RajukApproval, isPrivate: true),
+            UploadedFile::fake()->create('rajuk-approval.pdf', 40, 'application/pdf'),
+            $owner,
+        );
+        app(UploadProjectDocument::class)->handle(
+            $landShareProject,
+            new ProjectDocumentData(documentType: ProjectDocumentType::LandDeed, isPrivate: true),
+            UploadedFile::fake()->create('land-deed.pdf', 30, 'application/pdf'),
+            $owner,
+        );
+
+        app(SubmitProjectForVerification::class)->handle($landShareProject);
+
+        // Project two: a straightforward apartment project, still draft —
+        // exercises the module without land-share/verification complexity.
+        $apartmentProject = app(CreateProject::class)->handle(
+            new ProjectData(
+                name: 'Bashundhara Residency',
+                projectType: ProjectType::Apartment,
+                description: 'A mid-rise apartment block in Bashundhara R/A, close to Jamuna Future Park.',
+                totalLandArea: '1.20',
+                currency: 'BDT',
+            ),
+            $owner,
+        );
+
+        app(AddProjectLocation::class)->handle(
+            $apartmentProject,
+            new ProjectLocationData(
+                division: 'Dhaka',
+                district: 'Dhaka',
+                area: 'Bashundhara',
+                sector: 'Block C',
+                road: 'Road 12',
+                landmark: 'Near Jamuna Future Park',
+                latitude: '23.8151',
+                longitude: '90.4260',
+            ),
+        );
+
+        $apartmentBuilding = app(AddBuilding::class)->handle(
+            $apartmentProject,
+            new BuildingData(name: 'Block C', totalFloors: 8),
+        );
+
+        $unitC1 = app(AddUnit::class)->handle(
+            $apartmentBuilding,
+            new UnitData(
+                unitNumber: 'C-301',
+                floor: 3,
+                sizeSqft: '1250.00',
+                bedrooms: 3,
+                bathrooms: 2,
+                facing: UnitFacing::North,
+                parkingSpaces: 1,
+            ),
+        );
+        app(SetUnitPrice::class)->handle($unitC1, new UnitPriceData(price: '11200000.00', priceType: UnitPriceType::Base, effectiveFrom: now()->toDateString()));
+
+        app(AddUnit::class)->handle(
+            $apartmentBuilding,
+            new UnitData(
+                unitNumber: 'C-802',
+                floor: 8,
+                sizeSqft: '2100.00',
+                bedrooms: 4,
+                bathrooms: 4,
+                facing: UnitFacing::Southwest,
+                parkingSpaces: 2,
+            ),
+        );
+
+        app(AddAmenity::class)->handle($apartmentProject, new AmenityData(name: 'Rooftop Garden', icon: null));
+        app(AddAmenity::class)->handle($apartmentProject, new AmenityData(name: 'Lift', icon: null));
+
+        app(SetProjectPricing::class)->handle(
+            $apartmentProject,
+            new ProjectPricingData(
+                landCost: '30000000.00',
+                constructionCost: '55000000.00',
+                consultancyCost: '1800000.00',
+                currency: 'BDT',
+            ),
+        );
+
+        app(AddPaymentPlan::class)->handle(
+            $apartmentProject,
+            new PaymentPlanData(
+                name: 'Quarterly 24-month plan',
+                downPaymentPercent: '25.00',
+                installmentCount: 8,
+                installmentFrequency: PaymentPlanFrequency::Quarterly,
+            ),
+        );
+
+        // Phase 1 commercial loop, end to end: a CRM lead with a requirement
+        // is matched to a unit, visits it, negotiates, reserves, books, and is
+        // handed an installment schedule with its first invoice raised — plus
+        // a platform admin verifying the land-share project submitted above.
+        $buyerLead = app(CreateLead::class)->handle(
+            new LeadData(
+                ownerEmployeeId: null,
+                name: 'Farhan Rahman',
+                company: null,
+                email: 'farhan.rahman@example.test',
+                phone: '+8801711000000',
+                source: 'Facebook Ads',
+                estimatedValue: '9500000.00',
+                notes: 'Looking for a 3-bed apartment in Uttara or Bashundhara, ready to move within 6 months.',
+            ),
+            $owner,
+        );
+
+        $requirement = app(CreatePropertyRequirement::class)->handle(
+            $buyerLead,
+            new PropertyRequirementData(
+                budgetMin: '9000000.00',
+                budgetMax: '11000000.00',
+                preferredLocations: 'Uttara, Bashundhara',
+                unitType: ProjectType::Apartment->value,
+                bedroomsMin: 3,
+                purpose: RequirementPurpose::Buy,
+                notes: 'First-time buyer, financing pre-approved.',
+            ),
+        );
+
+        app(MatchRequirementToUnits::class)->handle($requirement);
+
+        $conductingEmployee = Employee::query()->where('tenant_id', $tenant->getKey())->orderBy('id')->first();
+
+        $visit = app(ScheduleSiteVisit::class)->handle(
+            $buyerLead,
+            new SiteVisitData(
+                unitId: $unitA1->getKey(),
+                projectId: null,
+                scheduledAt: now()->addDays(3)->toDateTimeString(),
+                conductedByEmployeeId: $conductingEmployee?->getKey(),
+            ),
+        );
+        app(CompleteSiteVisit::class)->handle(
+            $visit,
+            new CompleteSiteVisitData(feedback: 'Buyer loved the unit and asked for a formal offer.'),
+        );
+
+        $initialOffer = app(MakeOffer::class)->handle(
+            $buyerLead,
+            new MakeOfferData(
+                unitId: $unitA1->getKey(),
+                offeredPrice: '9000000.00',
+                offeredBy: OfferedBy::Buyer,
+                notes: 'Opening offer after the site visit.',
+            ),
+            $owner,
+        );
+        $counterOffer = app(CounterOffer::class)->handle(
+            $initialOffer,
+            new CounterOfferData(
+                offeredPrice: '9350000.00',
+                offeredBy: OfferedBy::Seller,
+                notes: 'Countered slightly above asking given recent demand.',
+            ),
+        );
+        $acceptedOffer = app(AcceptOffer::class)->handle($counterOffer);
+
+        $booking = app(ReserveUnit::class)->handle($acceptedOffer, $owner);
+        $booking = app(ConfirmBooking::class)->handle($booking, $owner);
+
+        $installmentPlan = app(CreateInstallmentPlan::class)->handle(
+            $booking,
+            new InstallmentPlanData(
+                downPaymentAmount: '1000000.00',
+                installmentCount: 12,
+                frequency: PaymentPlanFrequency::Monthly,
+                startDate: now()->addMonth()->startOfMonth()->toDateString(),
+            ),
+        );
+
+        $firstInstallment = $installmentPlan->installments->first();
+        if ($firstInstallment !== null) {
+            app(GenerateInstallmentInvoice::class)->handle($firstInstallment, $owner);
+        }
+
+        $platformAdmin = User::where('email', 'platform-admin@bizops360.test')->first();
+        if ($platformAdmin !== null) {
+            app(VerifyProject::class)->handle(
+                $landShareProject,
+                $platformAdmin,
+                new VerifyProjectData(notes: 'RAJUK approval and land deed reviewed manually; both documents check out.'),
+            );
+        }
     }
 }
