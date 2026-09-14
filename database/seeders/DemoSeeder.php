@@ -68,7 +68,7 @@ use App\Modules\Industry\RealEstate\Actions\CompleteSiteVisit;
 use App\Modules\Industry\RealEstate\Actions\ConfirmBooking;
 use App\Modules\Industry\RealEstate\Actions\CounterOffer;
 use App\Modules\Industry\RealEstate\Actions\CreateInstallmentPlan;
-use App\Modules\Industry\RealEstate\Actions\CreateProject as CreateRealEstateProject;
+use App\Modules\Industry\RealEstate\Actions\CreateProject;
 use App\Modules\Industry\RealEstate\Actions\CreatePropertyRequirement;
 use App\Modules\Industry\RealEstate\Actions\GenerateInstallmentInvoice;
 use App\Modules\Industry\RealEstate\Actions\MakeOffer;
@@ -89,7 +89,7 @@ use App\Modules\Industry\RealEstate\Data\LandRecordData;
 use App\Modules\Industry\RealEstate\Data\LandShareData;
 use App\Modules\Industry\RealEstate\Data\MakeOfferData;
 use App\Modules\Industry\RealEstate\Data\PaymentPlanData;
-use App\Modules\Industry\RealEstate\Data\ProjectData as RealEstateProjectData;
+use App\Modules\Industry\RealEstate\Data\ProjectData;
 use App\Modules\Industry\RealEstate\Data\ProjectDocumentData;
 use App\Modules\Industry\RealEstate\Data\ProjectLocationData;
 use App\Modules\Industry\RealEstate\Data\ProjectPricingData;
@@ -122,10 +122,10 @@ use App\Modules\Industry\Travel\Models\Booking;
 use App\Modules\Operations\Actions\AddTaskComment;
 use App\Modules\Operations\Actions\AssignTask;
 use App\Modules\Operations\Actions\ChangeTaskStatus;
-use App\Modules\Operations\Actions\CreateProject;
+use App\Modules\Operations\Actions\CreateProject as CreateOperationsProject;
 use App\Modules\Operations\Actions\CreateTask;
 use App\Modules\Operations\Actions\UploadTaskAttachment;
-use App\Modules\Operations\Data\ProjectData;
+use App\Modules\Operations\Data\ProjectData as OperationsProjectData;
 use App\Modules\Operations\Data\TaskAssignmentData;
 use App\Modules\Operations\Data\TaskCommentData;
 use App\Modules\Operations\Data\TaskData;
@@ -571,8 +571,8 @@ class DemoSeeder extends Seeder
             ? Employee::query()->where('tenant_id', $tenant->getKey())->where('user_id', $staffUser->getKey())->first()
             : null;
 
-        $project = app(CreateProject::class)->handle(
-            new ProjectData(
+        $project = app(CreateOperationsProject::class)->handle(
+            new OperationsProjectData(
                 departmentId: $salesDept?->getKey(),
                 leadEmployeeId: $staffEmployee?->getKey(),
                 name: 'Client Onboarding Rollout',
@@ -1122,8 +1122,8 @@ class DemoSeeder extends Seeder
 
         // Project one: a land-share development, fully structured and
         // submitted for the platform's verification queue.
-        $landShareProject = app(CreateRealEstateProject::class)->handle(
-            new RealEstateProjectData(
+        $landShareProject = app(CreateProject::class)->handle(
+            new ProjectData(
                 name: 'Uttara Diabari Heights',
                 projectType: ProjectType::LandShare,
                 description: 'A land-share residential development near Diabari Metro Station, Uttara, offered to shareholders ahead of construction.',
@@ -1241,8 +1241,8 @@ class DemoSeeder extends Seeder
 
         // Project two: a straightforward apartment project, still draft —
         // exercises the module without land-share/verification complexity.
-        $apartmentProject = app(CreateRealEstateProject::class)->handle(
-            new RealEstateProjectData(
+        $apartmentProject = app(CreateProject::class)->handle(
+            new ProjectData(
                 name: 'Bashundhara Residency',
                 projectType: ProjectType::Apartment,
                 description: 'A mid-rise apartment block in Bashundhara R/A, close to Jamuna Future Park.',
