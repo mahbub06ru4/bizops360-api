@@ -118,3 +118,30 @@ it('paginates employees honouring a clamped per_page', function (): void {
     $this->actingAs($owner, 'sanctum')->getJson('/api/v1/employees?per_page=9999')
         ->assertOk()->assertJsonPath('meta.per_page', 100);
 });
+
+it('searches employees by name, code, or email', function (): void {
+    $tenant = makeTenant();
+    $owner = makeUser($tenant, 'owner');
+    $ada = Employee::factory()->forTenant($tenant)->create([
+        'first_name' => 'Ada', 'last_name' => 'Lovelace', 'employee_code' => 'EMP-ADA', 'email' => 'ada@example.test',
+    ]);
+    Employee::factory()->forTenant($tenant)->create([
+        'first_name' => 'Grace', 'last_name' => 'Hopper', 'employee_code' => 'EMP-GH', 'email' => 'grace@example.test',
+    ]);
+    clearTenantContext();
+
+    $this->actingAs($owner, 'sanctum')->getJson('/api/v1/employees?q=lovelace')
+        ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $ada->id);
+
+    $this->actingAs($owner, 'sanctum')->getJson('/api/v1/employees?q=ada+love')
+        ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $ada->id);
+
+    $this->actingAs($owner, 'sanctum')->getJson('/api/v1/employees?q=EMP-ADA')
+        ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $ada->id);
+
+    $this->actingAs($owner, 'sanctum')->getJson('/api/v1/employees?q=ada@example.test')
+        ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $ada->id);
+
+    $this->actingAs($owner, 'sanctum')->getJson('/api/v1/employees?q=nobody-matches-this')
+        ->assertOk()->assertJsonCount(0, 'data');
+});

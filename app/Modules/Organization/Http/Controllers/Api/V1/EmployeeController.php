@@ -12,6 +12,7 @@ use App\Modules\Organization\Actions\UpdateEmployee;
 use App\Modules\Organization\Http\Requests\EmployeeRequest;
 use App\Modules\Organization\Http\Resources\EmployeeResource;
 use App\Modules\Organization\Models\Employee;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -27,19 +28,36 @@ class EmployeeController extends Controller
     private const int MAX_PER_PAGE = 100;
 
     /**
-     * List the current tenant's employees. Accepts `per_page` (1-100, default 15).
+     * List the current tenant's employees. Accepts `per_page` (1-100, default 15)
+     * and `q` (matches name, employee code, or email).
      */
     public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Employee::class);
 
+        $query = Employee::query()->with(self::WITH);
+
+        if ($request->filled('q')) {
+            $this->applySearch($query, $request->string('q')->toString());
+        }
+
         return EmployeeResource::collection(
-            Employee::query()
-                ->with(self::WITH)
-                ->orderBy('last_name')
-                ->orderBy('first_name')
-                ->paginate($this->perPage($request)),
+            $query->orderBy('last_name')->orderBy('first_name')->paginate($this->perPage($request)),
         );
+    }
+
+    /**
+     * @param  Builder<Employee>  $query
+     */
+    private function applySearch(Builder $query, string $term): void
+    {
+        $term = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
+
+        $query->where(function (Builder $q) use ($term): void {
+            $q->whereRaw("first_name || ' ' || last_name ilike ?", [$term])
+                ->orWhere('employee_code', 'ilike', $term)
+                ->orWhere('email', 'ilike', $term);
+        });
     }
 
     private function perPage(Request $request): int
