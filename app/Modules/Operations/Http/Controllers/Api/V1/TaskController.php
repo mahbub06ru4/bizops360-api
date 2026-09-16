@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Operations\Http\Controllers\Api\V1;
 
+use App\Http\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Operations\Actions\AssignTask;
@@ -25,6 +26,8 @@ use Illuminate\Http\Response;
 
 class TaskController extends Controller
 {
+    use HasPerPage;
+
     /** @var list<string> */
     private const array WITH = ['project', 'assigneeEmployee', 'assigneeTeam'];
 
@@ -63,7 +66,7 @@ class TaskController extends Controller
             });
         }
 
-        return TaskResource::collection($query->paginate());
+        return TaskResource::collection($query->paginate($this->perPage($request)));
     }
 
     public function store(TaskRequest $request, CreateTask $action): JsonResponse

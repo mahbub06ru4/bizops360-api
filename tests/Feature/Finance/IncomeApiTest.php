@@ -86,3 +86,19 @@ it('does not leak another tenant\'s entries into the list', function (): void {
     $this->actingAs($manager, 'sanctum')->getJson('/api/v1/incomes')
         ->assertOk()->assertJsonPath('meta.total', 2);
 });
+
+it('honours a clamped per_page on the incomes index', function (): void {
+    $tenant = makeTenant();
+    $manager = makeUser($tenant, 'manager');
+    Income::factory()->forTenant($tenant)->count(5)->create();
+    clearTenantContext();
+
+    $this->actingAs($manager, 'sanctum')->getJson('/api/v1/incomes?per_page=2')
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('meta.per_page', 2)
+        ->assertJsonPath('meta.last_page', 3);
+
+    $this->actingAs($manager, 'sanctum')->getJson('/api/v1/incomes?per_page=9999')
+        ->assertOk()->assertJsonPath('meta.per_page', 100);
+});

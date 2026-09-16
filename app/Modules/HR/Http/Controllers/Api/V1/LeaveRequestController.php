@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\HR\Http\Controllers\Api\V1;
 
+use App\Http\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\HR\Actions\ApproveLeaveRequest;
@@ -21,6 +22,8 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class LeaveRequestController extends Controller
 {
+    use HasPerPage;
+
     /**
      * List leave requests. Users without `leave.approve` only see their own.
      */
@@ -38,7 +41,7 @@ class LeaveRequestController extends Controller
             $query->where('employee_id', $employeeId);
         }
 
-        return LeaveRequestResource::collection($query->paginate());
+        return LeaveRequestResource::collection($query->paginate($this->perPage($request)));
     }
 
     public function store(LeaveRequestRequest $request, RequestLeave $action): JsonResponse

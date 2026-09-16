@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Finance\Http\Controllers\Api\V1;
 
+use App\Http\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Finance\Actions\CreateInvoice;
@@ -27,6 +28,8 @@ use Illuminate\Http\Response;
 
 class InvoiceController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Invoice::class);
@@ -41,7 +44,7 @@ class InvoiceController extends Controller
             $query->where('customer_id', $request->integer('customer_id'));
         }
 
-        return InvoiceResource::collection($query->paginate());
+        return InvoiceResource::collection($query->paginate($this->perPage($request)));
     }
 
     public function store(InvoiceRequest $request, CreateInvoice $action): JsonResponse

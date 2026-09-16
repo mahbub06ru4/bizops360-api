@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\HR\Http\Controllers\Api\V1;
 
+use App\Http\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\HR\Actions\CheckIn;
@@ -22,6 +23,8 @@ use Illuminate\Validation\ValidationException;
 
 class AttendanceController extends Controller
 {
+    use HasPerPage;
+
     /**
      * List attendance records. Users without `attendance.view_all` see only their own.
      */
@@ -50,7 +53,7 @@ class AttendanceController extends Controller
             $query->whereDate('date', '<=', $request->date('to'));
         }
 
-        return AttendanceResource::collection($query->paginate());
+        return AttendanceResource::collection($query->paginate($this->perPage($request)));
     }
 
     /**
