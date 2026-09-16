@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Operations\Http\Controllers\Api\V1;
 
+use App\Http\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Operations\Actions\CreateProject;
@@ -19,6 +20,8 @@ use Illuminate\Http\Response;
 
 class ProjectController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Project::class);
@@ -29,7 +32,7 @@ class ProjectController extends Controller
             $query->where('status', $request->string('status')->toString());
         }
 
-        return ProjectResource::collection($query->paginate());
+        return ProjectResource::collection($query->paginate($this->perPage($request)));
     }
 
     public function store(ProjectRequest $request, CreateProject $action): JsonResponse

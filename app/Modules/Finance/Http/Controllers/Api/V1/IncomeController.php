@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Finance\Http\Controllers\Api\V1;
 
+use App\Http\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Finance\Actions\DeleteIncome;
@@ -19,6 +20,8 @@ use Illuminate\Http\Response;
 
 class IncomeController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Income::class);
@@ -33,7 +36,7 @@ class IncomeController extends Controller
             $query->where('customer_id', $request->integer('customer_id'));
         }
 
-        return IncomeResource::collection($query->paginate());
+        return IncomeResource::collection($query->paginate($this->perPage($request)));
     }
 
     public function store(IncomeRequest $request, RecordIncome $action): JsonResponse

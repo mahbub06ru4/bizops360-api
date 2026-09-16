@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Finance\Http\Controllers\Api\V1;
 
+use App\Http\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Finance\Actions\ApproveExpense;
@@ -22,6 +23,8 @@ use Illuminate\Http\Response;
 
 class ExpenseController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Expense::class);
@@ -40,7 +43,7 @@ class ExpenseController extends Controller
             $query->where('status', $request->string('status')->toString());
         }
 
-        return ExpenseResource::collection($query->paginate());
+        return ExpenseResource::collection($query->paginate($this->perPage($request)));
     }
 
     public function store(ExpenseRequest $request, RecordExpense $action): JsonResponse

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\CRM\Http\Controllers\Api\V1;
 
+use App\Http\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\CRM\Actions\ConvertLead;
@@ -27,6 +28,8 @@ use Illuminate\Http\Response;
 
 class LeadController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Lead::class);
@@ -43,7 +46,7 @@ class LeadController extends Controller
 
         $this->scopeToInvolvement($query, $request);
 
-        return LeadResource::collection($query->paginate());
+        return LeadResource::collection($query->paginate($this->perPage($request)));
     }
 
     /**

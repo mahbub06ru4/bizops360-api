@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\HR\Http\Controllers\Api\V1;
 
+use App\Http\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\HR\Actions\SetLeaveBalance;
@@ -16,6 +17,8 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class LeaveBalanceController extends Controller
 {
+    use HasPerPage;
+
     /**
      * List leave balances. Users without `leave.manage_balance` only see their own.
      */
@@ -33,7 +36,7 @@ class LeaveBalanceController extends Controller
             $query->where('employee_id', $employeeId);
         }
 
-        return LeaveBalanceResource::collection($query->paginate());
+        return LeaveBalanceResource::collection($query->paginate($this->perPage($request)));
     }
 
     /**

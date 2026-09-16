@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\CRM\Http\Controllers\Api\V1;
 
+use App\Http\Concerns\HasPerPage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\CRM\Actions\BuildCustomerHistory;
@@ -23,6 +24,8 @@ use Illuminate\Http\Response;
 
 class CustomerController extends Controller
 {
+    use HasPerPage;
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Customer::class);
@@ -46,7 +49,7 @@ class CustomerController extends Controller
             });
         }
 
-        return CustomerResource::collection($query->paginate());
+        return CustomerResource::collection($query->paginate($this->perPage($request)));
     }
 
     public function store(CustomerRequest $request, CreateCustomer $action): JsonResponse
