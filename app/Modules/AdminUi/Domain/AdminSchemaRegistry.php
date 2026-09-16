@@ -51,6 +51,7 @@ class AdminSchemaRegistry
     {
         return [
             'key' => 'branches',
+            'labelField' => 'name',
             'label' => 'Branch',
             'pluralLabel' => 'Branches',
             'endpoint' => '/branches',
@@ -79,6 +80,7 @@ class AdminSchemaRegistry
     {
         return [
             'key' => 'departments',
+            'labelField' => 'name',
             'label' => 'Department',
             'pluralLabel' => 'Departments',
             'endpoint' => '/departments',
@@ -105,6 +107,7 @@ class AdminSchemaRegistry
     {
         return [
             'key' => 'designations',
+            'labelField' => 'title',
             'label' => 'Designation',
             'pluralLabel' => 'Designations',
             'endpoint' => '/designations',
@@ -129,6 +132,7 @@ class AdminSchemaRegistry
     {
         return [
             'key' => 'employees',
+            'labelField' => 'full_name',
             'label' => 'Employee',
             'pluralLabel' => 'Employees',
             'endpoint' => '/employees',
