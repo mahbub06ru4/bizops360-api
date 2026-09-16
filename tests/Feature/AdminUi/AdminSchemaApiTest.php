@@ -42,6 +42,20 @@ it('returns the admin panel schema for an authenticated tenant user', function (
     expect($byKey['office_location']['mode'])->toBe('singleton');
     expect($byKey['employee_documents']['permissions']['update'])->toBeNull();
 
+    // Row-level actions beyond plain CRUD (approve/reject, convert,
+    // terminate, ...) and the other action-engine capabilities.
+    expect(array_column($byKey['expenses']['actions'], 'key'))->toEqual(['approve', 'reject']);
+    expect(array_column($byKey['leave_requests']['actions'], 'key'))->toEqual(['approve', 'reject', 'cancel']);
+    expect(array_column($byKey['invoices']['actions'], 'key'))->toEqual(['send', 'void', 'record_payment', 'refund']);
+    expect(array_column($byKey['employees']['actions'], 'key'))->toEqual(['terminate']);
+    expect(array_column($byKey['tasks']['actions'], 'key'))->toEqual(['update_status', 'update_assignee']);
+    expect(array_column($byKey['follow_ups']['actions'], 'key'))->toEqual(['complete', 'cancel']);
+    expect(array_column($byKey['leads']['actions'], 'key'))->toEqual(['move_stage', 'convert']);
+    expect($byKey['teams']['actions'][0]['fetchDetail'])->toBeTrue();
+    expect($byKey['users']['actions'][0]['fields'][0]['prefillFrom'])->toBe('roles');
+    expect($byKey['employee_documents']['columns'][5]['link'])->toBeTrue();
+    expect($byKey['attendance']['summaryEndpoint'])->toBe('/attendance/summary');
+
     $dashboardKeys = array_column($response->json('data.dashboards'), 'key');
     expect($dashboardKeys)->toEqual(['operations_overview', 'crm_reports', 'finance_reports']);
 });
