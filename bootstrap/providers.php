@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Modules\AdminUi\Providers\AdminUiServiceProvider;
 use App\Modules\Audit\Providers\AuditServiceProvider;
 use App\Modules\Billing\Providers\BillingServiceProvider;
 use App\Modules\CRM\Providers\CRMServiceProvider;
@@ -29,4 +30,5 @@ return [
     RealEstateServiceProvider::class,
     AuditServiceProvider::class,
     BillingServiceProvider::class,
+    AdminUiServiceProvider::class,
 ];
