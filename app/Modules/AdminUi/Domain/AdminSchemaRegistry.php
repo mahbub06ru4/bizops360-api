@@ -15,16 +15,36 @@ namespace App\Modules\AdminUi\Domain;
  * registry does not replace those, it just describes them for the UI.
  *
  * Field `type` values the frontend understands: string, text, number,
- * boolean, date, select (static `options`), password (masked input, never
- * pre-filled on edit), relation (`relation.resource` points at another
- * resource key in this same registry, fetched as a dropdown of {id, label}).
- * `onlyOnCreate: true` hides a field on the edit form entirely (e.g. a
- * password that's set once, not re-editable this way).
+ * boolean, date, time, select (static `options`), multiselect (static
+ * `options`, submits an array of values), password (masked input, never
+ * pre-filled on edit), file (multipart upload), relation (`relation.resource`
+ * points at another resource key in this same registry, fetched as a
+ * dropdown of {id, label}), relation-multi (same, but a multi-select
+ * submitting an array of ids). `onlyOnCreate: true` hides a field on the
+ * edit form entirely (e.g. a password that's set once, not re-editable this
+ * way). `prefillFrom` is a dot-path evaluated against the row (or, when the
+ * owning action sets `fetchDetail`, against a fresh GET of the record) whose
+ * value becomes the field's default when the dialog opens.
  *
  * A resource's `permissions.create`/`update`/`delete` may be `null` when no
  * matching backend route exists (e.g. LeaveRequest has no update/destroy
  * route) — the frontend hides that action rather than gating it on a
  * permission that would never be enough anyway.
+ *
+ * `actions`: named, row-level operations beyond plain create/update/delete —
+ * approve/reject, convert, terminate, and the like. Each has a `key`,
+ * `label`, HTTP `method`, `endpoint` (may contain a `{id}` placeholder),
+ * `permission` (or `null` to always show, gated by the backend instead),
+ * optional `confirm` text, optional `style` ('default'|'destructive'|
+ * 'secondary'), optional `fields` (rendered as a small dialog form; an
+ * action with no fields prompts `confirm` then submits immediately), and
+ * optional `fetchDetail` (GET the record fresh before opening the dialog,
+ * for fields whose `prefillFrom` needs data the list row doesn't carry).
+ *
+ * A column with `link: true` renders its value as a clickable/downloadable
+ * link instead of plain text. A resource with `summaryEndpoint` gets a row
+ * of stat cards fetched from that endpoint rendered above its table — for
+ * read-only aggregate data no generic table/form captures.
  */
 class AdminSchemaRegistry
 {
@@ -209,6 +229,18 @@ class AdminSchemaRegistry
                 ['key' => 'designation.title', 'label' => 'Designation'],
                 ['key' => 'employment_status', 'label' => 'Status'],
             ],
+            'actions' => [
+                [
+                    'key' => 'terminate',
+                    'label' => 'Terminate',
+                    'method' => 'POST',
+                    'endpoint' => '/employees/{id}/terminate',
+                    'permission' => 'employee.terminate',
+                    'confirm' => 'Terminate this employee? This cannot be undone.',
+                    'style' => 'destructive',
+                    'fields' => [],
+                ],
+            ],
             'fields' => [
                 ['key' => 'first_name', 'label' => 'First name', 'type' => 'string', 'required' => true],
                 ['key' => 'last_name', 'label' => 'Last name', 'type' => 'string', 'required' => true],
@@ -249,6 +281,22 @@ class AdminSchemaRegistry
                 ['key' => 'description', 'label' => 'Description'],
                 ['key' => 'members_count', 'label' => 'Members'],
             ],
+            'actions' => [
+                [
+                    'key' => 'manage_members',
+                    'label' => 'Members',
+                    'method' => 'PUT',
+                    'endpoint' => '/teams/{id}/members',
+                    'permission' => 'team.update',
+                    'fetchDetail' => true,
+                    'fields' => [
+                        [
+                            'key' => 'members', 'label' => 'Members', 'type' => 'relation-multi', 'required' => false,
+                            'relation' => ['resource' => 'employees'], 'prefillFrom' => 'members',
+                        ],
+                    ],
+                ],
+            ],
             'fields' => [
                 ['key' => 'name', 'label' => 'Name', 'type' => 'string', 'required' => true],
                 ['key' => 'description', 'label' => 'Description', 'type' => 'text', 'required' => false],
@@ -258,9 +306,6 @@ class AdminSchemaRegistry
     }
 
     /**
-     * Roles/password reset stay on the hand-built Users screen — creating a
-     * login here only covers name/email/password, no role assignment.
-     *
      * @return array<string, mixed>
      */
     private function users(): array
@@ -276,6 +321,27 @@ class AdminSchemaRegistry
                 ['key' => 'name', 'label' => 'Name'],
                 ['key' => 'email', 'label' => 'Email'],
                 ['key' => 'roles', 'label' => 'Roles'],
+            ],
+            'actions' => [
+                [
+                    'key' => 'assign_roles',
+                    'label' => 'Roles',
+                    'method' => 'PUT',
+                    'endpoint' => '/users/{id}/roles',
+                    'permission' => 'user.assign_roles',
+                    'fields' => [
+                        [
+                            'key' => 'roles', 'label' => 'Roles', 'type' => 'multiselect', 'required' => false,
+                            'prefillFrom' => 'roles',
+                            'options' => [
+                                ['value' => 'owner', 'label' => 'Owner'],
+                                ['value' => 'admin', 'label' => 'Admin'],
+                                ['value' => 'manager', 'label' => 'Manager'],
+                                ['value' => 'staff', 'label' => 'Staff'],
+                            ],
+                        ],
+                    ],
+                ],
             ],
             'fields' => [
                 ['key' => 'name', 'label' => 'Name', 'type' => 'string', 'required' => true],
@@ -391,6 +457,24 @@ class AdminSchemaRegistry
                 ['key' => 'days', 'label' => 'Days'],
                 ['key' => 'status', 'label' => 'Status'],
             ],
+            'actions' => [
+                [
+                    'key' => 'approve', 'label' => 'Approve', 'method' => 'POST',
+                    'endpoint' => '/leave-requests/{id}/approve', 'permission' => 'leave.approve',
+                    'confirm' => 'Approve this leave request?',
+                    'fields' => [['key' => 'note', 'label' => 'Note', 'type' => 'text', 'required' => false]],
+                ],
+                [
+                    'key' => 'reject', 'label' => 'Reject', 'method' => 'POST',
+                    'endpoint' => '/leave-requests/{id}/reject', 'permission' => 'leave.approve', 'style' => 'destructive',
+                    'fields' => [['key' => 'note', 'label' => 'Note', 'type' => 'text', 'required' => false]],
+                ],
+                [
+                    'key' => 'cancel', 'label' => 'Cancel', 'method' => 'POST',
+                    'endpoint' => '/leave-requests/{id}/cancel', 'permission' => 'leave.request', 'style' => 'secondary',
+                    'confirm' => 'Cancel this leave request?', 'fields' => [],
+                ],
+            ],
             'fields' => [
                 ['key' => 'employee_id', 'label' => 'Employee', 'type' => 'relation', 'required' => false, 'relation' => ['resource' => 'employees']],
                 ['key' => 'leave_type_id', 'label' => 'Leave type', 'type' => 'relation', 'required' => true, 'relation' => ['resource' => 'leave_types']],
@@ -443,6 +527,7 @@ class AdminSchemaRegistry
             'label' => 'Attendance record',
             'pluralLabel' => 'Attendance',
             'endpoint' => '/attendance',
+            'summaryEndpoint' => '/attendance/summary',
             'permissions' => ['view' => 'attendance.view', 'create' => 'attendance.record', 'update' => null, 'delete' => null],
             'columns' => [
                 ['key' => 'employee.full_name', 'label' => 'Employee'],
@@ -547,6 +632,7 @@ class AdminSchemaRegistry
                 ['key' => 'title', 'label' => 'Title'],
                 ['key' => 'expires_at', 'label' => 'Expires'],
                 ['key' => 'is_expired', 'label' => 'Expired'],
+                ['key' => 'download_url', 'label' => 'File', 'link' => true],
             ],
             'fields' => [
                 ['key' => 'employee_id', 'label' => 'Employee', 'type' => 'relation', 'required' => true, 'relation' => ['resource' => 'employees']],
@@ -628,6 +714,34 @@ class AdminSchemaRegistry
                 ['key' => 'priority', 'label' => 'Priority'],
                 ['key' => 'due_at', 'label' => 'Due'],
             ],
+            'actions' => [
+                [
+                    'key' => 'update_status', 'label' => 'Status', 'method' => 'PUT', 'endpoint' => '/tasks/{id}/status',
+                    'permission' => 'task.update',
+                    'fields' => [
+                        [
+                            'key' => 'status', 'label' => 'Status', 'type' => 'select', 'required' => true,
+                            'prefillFrom' => 'status',
+                            'options' => [
+                                ['value' => 'todo', 'label' => 'To do'],
+                                ['value' => 'in_progress', 'label' => 'In progress'],
+                                ['value' => 'in_review', 'label' => 'In review'],
+                                ['value' => 'blocked', 'label' => 'Blocked'],
+                                ['value' => 'done', 'label' => 'Done'],
+                                ['value' => 'cancelled', 'label' => 'Cancelled'],
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'key' => 'update_assignee', 'label' => 'Assignee', 'method' => 'PUT',
+                    'endpoint' => '/tasks/{id}/assignee', 'permission' => 'task.assign',
+                    'fields' => [
+                        ['key' => 'assignee_employee_id', 'label' => 'Employee', 'type' => 'relation', 'required' => false, 'relation' => ['resource' => 'employees']],
+                        ['key' => 'assignee_team_id', 'label' => 'Team', 'type' => 'relation', 'required' => false, 'relation' => ['resource' => 'teams']],
+                    ],
+                ],
+            ],
             'fields' => [
                 ['key' => 'title', 'label' => 'Title', 'type' => 'string', 'required' => true],
                 ['key' => 'description', 'label' => 'Description', 'type' => 'text', 'required' => false],
@@ -665,6 +779,31 @@ class AdminSchemaRegistry
                 ['key' => 'stage', 'label' => 'Stage'],
                 ['key' => 'estimated_value', 'label' => 'Value'],
                 ['key' => 'owner.full_name', 'label' => 'Owner'],
+            ],
+            'actions' => [
+                [
+                    'key' => 'move_stage', 'label' => 'Stage', 'method' => 'PUT', 'endpoint' => '/leads/{id}/stage',
+                    'permission' => 'lead.update',
+                    'fields' => [
+                        [
+                            'key' => 'stage', 'label' => 'Stage', 'type' => 'select', 'required' => true,
+                            'prefillFrom' => 'stage',
+                            'options' => [
+                                ['value' => 'new', 'label' => 'New'],
+                                ['value' => 'contacted', 'label' => 'Contacted'],
+                                ['value' => 'interested', 'label' => 'Interested'],
+                                ['value' => 'follow_up', 'label' => 'Follow up'],
+                                ['value' => 'negotiation', 'label' => 'Negotiation'],
+                                ['value' => 'lost', 'label' => 'Lost'],
+                            ],
+                        ],
+                        ['key' => 'lost_reason', 'label' => 'Lost reason', 'type' => 'text', 'required' => false],
+                    ],
+                ],
+                [
+                    'key' => 'convert', 'label' => 'Convert', 'method' => 'POST', 'endpoint' => '/leads/{id}/convert',
+                    'permission' => 'lead.convert', 'confirm' => 'Convert this lead to a customer?', 'fields' => [],
+                ],
             ],
             'fields' => [
                 ['key' => 'name', 'label' => 'Name', 'type' => 'string', 'required' => true],
@@ -736,6 +875,18 @@ class AdminSchemaRegistry
                 ['key' => 'due_at', 'label' => 'Due'],
                 ['key' => 'status', 'label' => 'Status'],
                 ['key' => 'assigned_employee.full_name', 'label' => 'Assigned to'],
+            ],
+            'actions' => [
+                [
+                    'key' => 'complete', 'label' => 'Complete', 'method' => 'POST',
+                    'endpoint' => '/follow-ups/{id}/complete', 'permission' => 'follow_up.update',
+                    'fields' => [['key' => 'outcome', 'label' => 'Outcome', 'type' => 'text', 'required' => false]],
+                ],
+                [
+                    'key' => 'cancel', 'label' => 'Cancel', 'method' => 'POST', 'endpoint' => '/follow-ups/{id}/cancel',
+                    'permission' => 'follow_up.update', 'style' => 'destructive',
+                    'confirm' => 'Cancel this follow-up?', 'fields' => [],
+                ],
             ],
             'fields' => [
                 [
@@ -810,6 +961,18 @@ class AdminSchemaRegistry
                 ['key' => 'spent_on', 'label' => 'Spent on'],
                 ['key' => 'status', 'label' => 'Status'],
             ],
+            'actions' => [
+                [
+                    'key' => 'approve', 'label' => 'Approve', 'method' => 'POST', 'endpoint' => '/expenses/{id}/approve',
+                    'permission' => 'expense.approve', 'confirm' => 'Approve this expense?',
+                    'fields' => [['key' => 'note', 'label' => 'Note', 'type' => 'text', 'required' => false]],
+                ],
+                [
+                    'key' => 'reject', 'label' => 'Reject', 'method' => 'POST', 'endpoint' => '/expenses/{id}/reject',
+                    'permission' => 'expense.approve', 'style' => 'destructive',
+                    'fields' => [['key' => 'note', 'label' => 'Note', 'type' => 'text', 'required' => false]],
+                ],
+            ],
             'fields' => [
                 ['key' => 'title', 'label' => 'Title', 'type' => 'string', 'required' => true],
                 [
@@ -849,6 +1012,58 @@ class AdminSchemaRegistry
                 ['key' => 'status', 'label' => 'Status'],
                 ['key' => 'amount', 'label' => 'Amount'],
                 ['key' => 'amount_due', 'label' => 'Due'],
+            ],
+            'actions' => [
+                [
+                    'key' => 'send', 'label' => 'Send', 'method' => 'POST', 'endpoint' => '/invoices/{id}/send',
+                    'permission' => 'invoice.send', 'confirm' => 'Send this invoice to the customer?', 'fields' => [],
+                ],
+                [
+                    'key' => 'void', 'label' => 'Void', 'method' => 'POST', 'endpoint' => '/invoices/{id}/void',
+                    'permission' => 'invoice.void', 'style' => 'destructive',
+                    'confirm' => 'Void this invoice? This cannot be undone.', 'fields' => [],
+                ],
+                [
+                    'key' => 'record_payment', 'label' => 'Record payment', 'method' => 'POST',
+                    'endpoint' => '/invoices/{id}/payments', 'permission' => 'invoice.record_payment',
+                    'fields' => [
+                        ['key' => 'amount', 'label' => 'Amount', 'type' => 'number', 'required' => true],
+                        ['key' => 'paid_on', 'label' => 'Paid on', 'type' => 'date', 'required' => true],
+                        [
+                            'key' => 'method', 'label' => 'Method', 'type' => 'select', 'required' => false,
+                            'options' => [
+                                ['value' => 'cash', 'label' => 'Cash'],
+                                ['value' => 'bank_transfer', 'label' => 'Bank transfer'],
+                                ['value' => 'card', 'label' => 'Card'],
+                                ['value' => 'mobile', 'label' => 'Mobile'],
+                                ['value' => 'cheque', 'label' => 'Cheque'],
+                                ['value' => 'other', 'label' => 'Other'],
+                            ],
+                        ],
+                        ['key' => 'reference', 'label' => 'Reference', 'type' => 'string', 'required' => false],
+                        ['key' => 'note', 'label' => 'Note', 'type' => 'text', 'required' => false],
+                    ],
+                ],
+                [
+                    'key' => 'refund', 'label' => 'Refund', 'method' => 'POST', 'endpoint' => '/invoices/{id}/refunds',
+                    'permission' => 'invoice.refund', 'style' => 'destructive',
+                    'fields' => [
+                        ['key' => 'amount', 'label' => 'Amount', 'type' => 'number', 'required' => true],
+                        ['key' => 'refunded_on', 'label' => 'Refunded on', 'type' => 'date', 'required' => true],
+                        [
+                            'key' => 'method', 'label' => 'Method', 'type' => 'select', 'required' => false,
+                            'options' => [
+                                ['value' => 'cash', 'label' => 'Cash'],
+                                ['value' => 'bank_transfer', 'label' => 'Bank transfer'],
+                                ['value' => 'card', 'label' => 'Card'],
+                                ['value' => 'mobile', 'label' => 'Mobile'],
+                                ['value' => 'cheque', 'label' => 'Cheque'],
+                                ['value' => 'other', 'label' => 'Other'],
+                            ],
+                        ],
+                        ['key' => 'reason', 'label' => 'Reason', 'type' => 'text', 'required' => false],
+                    ],
+                ],
             ],
             'fields' => [
                 ['key' => 'customer_id', 'label' => 'Customer', 'type' => 'relation', 'required' => true, 'relation' => ['resource' => 'customers']],
