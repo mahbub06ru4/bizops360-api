@@ -15,9 +15,16 @@ namespace App\Modules\AdminUi\Domain;
  * registry does not replace those, it just describes them for the UI.
  *
  * Field `type` values the frontend understands: string, text, number,
- * boolean, date, select (static `options`), relation (`relation.resource`
- * points at another resource key in this same registry, fetched as a
- * dropdown of {id, label}).
+ * boolean, date, select (static `options`), password (masked input, never
+ * pre-filled on edit), relation (`relation.resource` points at another
+ * resource key in this same registry, fetched as a dropdown of {id, label}).
+ * `onlyOnCreate: true` hides a field on the edit form entirely (e.g. a
+ * password that's set once, not re-editable this way).
+ *
+ * A resource's `permissions.create`/`update`/`delete` may be `null` when no
+ * matching backend route exists (e.g. LeaveRequest has no update/destroy
+ * route) — the frontend hides that action rather than gating it on a
+ * permission that would never be enough anyway.
  */
 class AdminSchemaRegistry
 {
@@ -32,13 +39,13 @@ class AdminSchemaRegistry
                     'key' => 'organization',
                     'label' => 'Organization',
                     'icon' => 'Building2',
-                    'resources' => ['branches', 'departments', 'designations', 'employees', 'teams'],
+                    'resources' => ['branches', 'departments', 'designations', 'employees', 'teams', 'users'],
                 ],
                 [
                     'key' => 'hr',
                     'label' => 'HR',
                     'icon' => 'Users',
-                    'resources' => ['holidays', 'leave_types'],
+                    'resources' => ['holidays', 'leave_types', 'leave_requests', 'leave_balances', 'attendance'],
                 ],
                 [
                     'key' => 'operations',
@@ -50,7 +57,7 @@ class AdminSchemaRegistry
                     'key' => 'crm',
                     'label' => 'CRM',
                     'icon' => 'Handshake',
-                    'resources' => ['leads', 'customers'],
+                    'resources' => ['leads', 'customers', 'follow_ups'],
                 ],
                 [
                     'key' => 'finance',
@@ -65,12 +72,17 @@ class AdminSchemaRegistry
                 $this->designations(),
                 $this->employees(),
                 $this->teams(),
+                $this->users(),
                 $this->holidays(),
                 $this->leaveTypes(),
+                $this->leaveRequests(),
+                $this->leaveBalances(),
+                $this->attendance(),
                 $this->projects(),
                 $this->tasks(),
                 $this->leads(),
                 $this->customers(),
+                $this->followUps(),
                 $this->incomes(),
                 $this->expenses(),
                 $this->invoices(),
@@ -229,6 +241,38 @@ class AdminSchemaRegistry
     }
 
     /**
+     * Roles/password reset stay on the hand-built Users screen — creating a
+     * login here only covers name/email/password, no role assignment.
+     *
+     * @return array<string, mixed>
+     */
+    private function users(): array
+    {
+        return [
+            'key' => 'users',
+            'labelField' => 'name',
+            'label' => 'User',
+            'pluralLabel' => 'Users',
+            'endpoint' => '/users',
+            'permissions' => ['view' => 'user.view', 'create' => 'user.create', 'update' => 'user.update', 'delete' => 'user.delete'],
+            'columns' => [
+                ['key' => 'name', 'label' => 'Name'],
+                ['key' => 'email', 'label' => 'Email'],
+                ['key' => 'roles', 'label' => 'Roles'],
+            ],
+            'fields' => [
+                ['key' => 'name', 'label' => 'Name', 'type' => 'string', 'required' => true],
+                ['key' => 'email', 'label' => 'Email', 'type' => 'string', 'required' => true],
+                ['key' => 'password', 'label' => 'Password', 'type' => 'password', 'required' => true, 'onlyOnCreate' => true],
+                [
+                    'key' => 'password_confirmation', 'label' => 'Confirm password', 'type' => 'password',
+                    'required' => true, 'onlyOnCreate' => true,
+                ],
+            ],
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function holidays(): array
@@ -278,6 +322,109 @@ class AdminSchemaRegistry
                 ['key' => 'default_days_per_year', 'label' => 'Default days/year', 'type' => 'number', 'required' => false],
                 ['key' => 'is_paid', 'label' => 'Paid', 'type' => 'boolean', 'required' => false],
                 ['key' => 'requires_approval', 'label' => 'Requires approval', 'type' => 'boolean', 'required' => false],
+            ],
+        ];
+    }
+
+    /**
+     * No update/destroy route (approve/reject/cancel are the only ways a
+     * leave request changes after it's filed) — list + create only.
+     *
+     * @return array<string, mixed>
+     */
+    private function leaveRequests(): array
+    {
+        return [
+            'key' => 'leave_requests',
+            'labelField' => 'id',
+            'label' => 'Leave request',
+            'pluralLabel' => 'Leave requests',
+            'endpoint' => '/leave-requests',
+            'permissions' => ['view' => 'leave.view', 'create' => 'leave.request', 'update' => null, 'delete' => null],
+            'columns' => [
+                ['key' => 'employee.full_name', 'label' => 'Employee'],
+                ['key' => 'leave_type.name', 'label' => 'Type'],
+                ['key' => 'start_date', 'label' => 'Start'],
+                ['key' => 'end_date', 'label' => 'End'],
+                ['key' => 'days', 'label' => 'Days'],
+                ['key' => 'status', 'label' => 'Status'],
+            ],
+            'fields' => [
+                ['key' => 'employee_id', 'label' => 'Employee', 'type' => 'relation', 'required' => false, 'relation' => ['resource' => 'employees']],
+                ['key' => 'leave_type_id', 'label' => 'Leave type', 'type' => 'relation', 'required' => true, 'relation' => ['resource' => 'leave_types']],
+                ['key' => 'start_date', 'label' => 'Start date', 'type' => 'date', 'required' => true],
+                ['key' => 'end_date', 'label' => 'End date', 'type' => 'date', 'required' => true],
+                ['key' => 'reason', 'label' => 'Reason', 'type' => 'text', 'required' => false],
+            ],
+        ];
+    }
+
+    /**
+     * No id-based update route — balances are set via a bare PUT with the
+     * employee/leave-type/year as the key, not /leave-balances/{id}. List
+     * only, for now.
+     *
+     * @return array<string, mixed>
+     */
+    private function leaveBalances(): array
+    {
+        return [
+            'key' => 'leave_balances',
+            'labelField' => 'id',
+            'label' => 'Leave balance',
+            'pluralLabel' => 'Leave balances',
+            'endpoint' => '/leave-balances',
+            'permissions' => ['view' => 'leave.view', 'create' => null, 'update' => null, 'delete' => null],
+            'columns' => [
+                ['key' => 'employee.full_name', 'label' => 'Employee'],
+                ['key' => 'leave_type.name', 'label' => 'Type'],
+                ['key' => 'year', 'label' => 'Year'],
+                ['key' => 'entitled_days', 'label' => 'Entitled'],
+                ['key' => 'used_days', 'label' => 'Used'],
+                ['key' => 'remaining_days', 'label' => 'Remaining'],
+            ],
+            'fields' => [],
+        ];
+    }
+
+    /**
+     * No update/destroy route — attendance is corrected by recording a new
+     * row for the day, not editing the old one. List + create only.
+     *
+     * @return array<string, mixed>
+     */
+    private function attendance(): array
+    {
+        return [
+            'key' => 'attendance',
+            'labelField' => 'id',
+            'label' => 'Attendance record',
+            'pluralLabel' => 'Attendance',
+            'endpoint' => '/attendance',
+            'permissions' => ['view' => 'attendance.view', 'create' => 'attendance.record', 'update' => null, 'delete' => null],
+            'columns' => [
+                ['key' => 'employee.full_name', 'label' => 'Employee'],
+                ['key' => 'date', 'label' => 'Date'],
+                ['key' => 'status', 'label' => 'Status'],
+                ['key' => 'check_in_at', 'label' => 'Check-in'],
+                ['key' => 'check_out_at', 'label' => 'Check-out'],
+                ['key' => 'worked_minutes', 'label' => 'Worked (min)'],
+            ],
+            'fields' => [
+                ['key' => 'employee_id', 'label' => 'Employee', 'type' => 'relation', 'required' => true, 'relation' => ['resource' => 'employees']],
+                ['key' => 'date', 'label' => 'Date', 'type' => 'date', 'required' => true],
+                [
+                    'key' => 'status', 'label' => 'Status', 'type' => 'select', 'required' => true,
+                    'options' => [
+                        ['value' => 'present', 'label' => 'Present'],
+                        ['value' => 'late', 'label' => 'Late'],
+                        ['value' => 'absent', 'label' => 'Absent'],
+                        ['value' => 'half_day', 'label' => 'Half day'],
+                        ['value' => 'on_leave', 'label' => 'On leave'],
+                        ['value' => 'holiday', 'label' => 'Holiday'],
+                    ],
+                ],
+                ['key' => 'note', 'label' => 'Note', 'type' => 'text', 'required' => false],
             ],
         ];
     }
@@ -426,6 +573,44 @@ class AdminSchemaRegistry
                 ['key' => 'phone', 'label' => 'Phone', 'type' => 'string', 'required' => false],
                 ['key' => 'address', 'label' => 'Address', 'type' => 'string', 'required' => false],
                 ['key' => 'owner_employee_id', 'label' => 'Owner', 'type' => 'relation', 'required' => false, 'relation' => ['resource' => 'employees']],
+            ],
+        ];
+    }
+
+    /**
+     * No flat create route — a follow-up is always scheduled under a lead
+     * or customer, not created standalone. List + update + delete only.
+     *
+     * @return array<string, mixed>
+     */
+    private function followUps(): array
+    {
+        return [
+            'key' => 'follow_ups',
+            'labelField' => 'id',
+            'label' => 'Follow-up',
+            'pluralLabel' => 'Follow-ups',
+            'endpoint' => '/follow-ups',
+            'permissions' => ['view' => 'follow_up.view', 'create' => null, 'update' => 'follow_up.update', 'delete' => 'follow_up.delete'],
+            'columns' => [
+                ['key' => 'type', 'label' => 'Type'],
+                ['key' => 'due_at', 'label' => 'Due'],
+                ['key' => 'status', 'label' => 'Status'],
+                ['key' => 'assigned_employee.full_name', 'label' => 'Assigned to'],
+            ],
+            'fields' => [
+                [
+                    'key' => 'type', 'label' => 'Type', 'type' => 'select', 'required' => false,
+                    'options' => [
+                        ['value' => 'call', 'label' => 'Call'],
+                        ['value' => 'email', 'label' => 'Email'],
+                        ['value' => 'meeting', 'label' => 'Meeting'],
+                        ['value' => 'task', 'label' => 'Task'],
+                    ],
+                ],
+                ['key' => 'due_at', 'label' => 'Due', 'type' => 'date', 'required' => true],
+                ['key' => 'assigned_employee_id', 'label' => 'Assigned to', 'type' => 'relation', 'required' => false, 'relation' => ['resource' => 'employees']],
+                ['key' => 'notes', 'label' => 'Notes', 'type' => 'text', 'required' => false],
             ],
         ];
     }
