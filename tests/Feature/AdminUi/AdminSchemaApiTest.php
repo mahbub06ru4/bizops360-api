@@ -14,13 +14,15 @@ it('returns the admin panel schema for an authenticated tenant user', function (
         ->assertJsonPath('data.resources.3.key', 'employees')
         ->assertJsonPath('data.resources.4.key', 'teams')
         ->assertJsonCount(5, 'data.modules')
-        ->assertJsonCount(19, 'data.resources');
+        ->assertJsonCount(3, 'data.dashboards')
+        ->assertJsonCount(23, 'data.resources');
 
     $resourceKeys = array_column($response->json('data.resources'), 'key');
 
     expect($resourceKeys)->toEqual([
-        'branches', 'departments', 'designations', 'employees', 'teams', 'users',
+        'branches', 'departments', 'designations', 'employees', 'teams', 'users', 'roles',
         'holidays', 'leave_types', 'leave_requests', 'leave_balances', 'attendance',
+        'attendance_settings', 'office_location', 'employee_documents',
         'projects', 'tasks',
         'leads', 'customers', 'follow_ups',
         'incomes', 'expenses', 'invoices',
@@ -34,6 +36,14 @@ it('returns the admin panel schema for an authenticated tenant user', function (
     expect($byKey['attendance']['permissions']['delete'])->toBeNull();
     expect($byKey['follow_ups']['permissions']['create'])->toBeNull();
     expect($byKey['follow_ups']['permissions']['update'])->toBe('follow_up.update');
+    expect($byKey['roles']['permissions']['create'])->toBeNull();
+    expect($byKey['roles']['paginated'])->toBeFalse();
+    expect($byKey['attendance_settings']['mode'])->toBe('singleton');
+    expect($byKey['office_location']['mode'])->toBe('singleton');
+    expect($byKey['employee_documents']['permissions']['update'])->toBeNull();
+
+    $dashboardKeys = array_column($response->json('data.dashboards'), 'key');
+    expect($dashboardKeys)->toEqual(['operations_overview', 'crm_reports', 'finance_reports']);
 });
 
 it('requires authentication', function (): void {
