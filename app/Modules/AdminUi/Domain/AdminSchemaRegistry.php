@@ -39,13 +39,16 @@ class AdminSchemaRegistry
                     'key' => 'organization',
                     'label' => 'Organization',
                     'icon' => 'Building2',
-                    'resources' => ['branches', 'departments', 'designations', 'employees', 'teams', 'users'],
+                    'resources' => ['branches', 'departments', 'designations', 'employees', 'teams', 'users', 'roles'],
                 ],
                 [
                     'key' => 'hr',
                     'label' => 'HR',
                     'icon' => 'Users',
-                    'resources' => ['holidays', 'leave_types', 'leave_requests', 'leave_balances', 'attendance'],
+                    'resources' => [
+                        'holidays', 'leave_types', 'leave_requests', 'leave_balances', 'attendance',
+                        'attendance_settings', 'office_location', 'employee_documents',
+                    ],
                 ],
                 [
                     'key' => 'operations',
@@ -66,6 +69,16 @@ class AdminSchemaRegistry
                     'resources' => ['incomes', 'expenses', 'invoices'],
                 ],
             ],
+            // Custom analytics/summary screens that aren't a resource list —
+            // no generic table or form could render these meaningfully, so
+            // they stay hand-built pages. Listed here only so the dynamic
+            // nav can surface them under the right module instead of a
+            // human having to remember they exist outside the schema.
+            'dashboards' => [
+                ['key' => 'operations_overview', 'label' => 'Overview', 'href' => '/operations/overview', 'module' => 'operations', 'permission' => 'operations.view_dashboard'],
+                ['key' => 'crm_reports', 'label' => 'Reports', 'href' => '/crm/reports', 'module' => 'crm', 'permission' => 'crm.view_dashboard'],
+                ['key' => 'finance_reports', 'label' => 'Reports', 'href' => '/finance/reports', 'module' => 'finance', 'permission' => 'finance.view_reports'],
+            ],
             'resources' => [
                 $this->branches(),
                 $this->departments(),
@@ -73,11 +86,15 @@ class AdminSchemaRegistry
                 $this->employees(),
                 $this->teams(),
                 $this->users(),
+                $this->roles(),
                 $this->holidays(),
                 $this->leaveTypes(),
                 $this->leaveRequests(),
                 $this->leaveBalances(),
                 $this->attendance(),
+                $this->attendanceSettings(),
+                $this->officeLocation(),
+                $this->employeeDocuments(),
                 $this->projects(),
                 $this->tasks(),
                 $this->leads(),
@@ -273,6 +290,31 @@ class AdminSchemaRegistry
     }
 
     /**
+     * The fixed 4-role catalogue every tenant is provisioned with — view
+     * only, and not paginated (RoleController returns a plain collection,
+     * not paginate()), so the frontend must not expect a `meta` envelope.
+     *
+     * @return array<string, mixed>
+     */
+    private function roles(): array
+    {
+        return [
+            'key' => 'roles',
+            'labelField' => 'name',
+            'label' => 'Role',
+            'pluralLabel' => 'Roles',
+            'endpoint' => '/roles',
+            'paginated' => false,
+            'permissions' => ['view' => 'role.view', 'create' => null, 'update' => null, 'delete' => null],
+            'columns' => [
+                ['key' => 'name', 'label' => 'Name'],
+                ['key' => 'permissions', 'label' => 'Permissions'],
+            ],
+            'fields' => [],
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function holidays(): array
@@ -425,6 +467,103 @@ class AdminSchemaRegistry
                     ],
                 ],
                 ['key' => 'note', 'label' => 'Note', 'type' => 'text', 'required' => false],
+            ],
+        ];
+    }
+
+    /**
+     * A single tenant-wide record with no id — GET/PUT on the bare endpoint,
+     * no list. The frontend renders this as one inline edit form, not a
+     * table.
+     *
+     * @return array<string, mixed>
+     */
+    private function attendanceSettings(): array
+    {
+        return [
+            'key' => 'attendance_settings',
+            'labelField' => 'work_starts_at',
+            'label' => 'Attendance settings',
+            'pluralLabel' => 'Attendance settings',
+            'endpoint' => '/attendance-settings',
+            'mode' => 'singleton',
+            'permissions' => ['view' => 'attendance.view', 'create' => null, 'update' => 'attendance.manage_settings', 'delete' => null],
+            'columns' => [],
+            'fields' => [
+                ['key' => 'work_starts_at', 'label' => 'Work starts at', 'type' => 'time', 'required' => true],
+                ['key' => 'work_ends_at', 'label' => 'Work ends at', 'type' => 'time', 'required' => true],
+                ['key' => 'grace_minutes', 'label' => 'Grace period (minutes)', 'type' => 'number', 'required' => true],
+            ],
+        ];
+    }
+
+    /**
+     * Singleton, like attendance_settings — the geofence staff must be
+     * inside to check in.
+     *
+     * @return array<string, mixed>
+     */
+    private function officeLocation(): array
+    {
+        return [
+            'key' => 'office_location',
+            'labelField' => 'label',
+            'label' => 'Office location',
+            'pluralLabel' => 'Office location',
+            'endpoint' => '/office-location',
+            'mode' => 'singleton',
+            'permissions' => ['view' => 'attendance.view', 'create' => null, 'update' => 'attendance.manage', 'delete' => null],
+            'columns' => [],
+            'fields' => [
+                ['key' => 'label', 'label' => 'Label', 'type' => 'string', 'required' => true],
+                ['key' => 'latitude', 'label' => 'Latitude', 'type' => 'number', 'required' => true],
+                ['key' => 'longitude', 'label' => 'Longitude', 'type' => 'number', 'required' => true],
+                ['key' => 'radius_meters', 'label' => 'Radius (meters)', 'type' => 'number', 'required' => true],
+                ['key' => 'start_time', 'label' => 'Start time', 'type' => 'time', 'required' => true],
+                ['key' => 'end_time', 'label' => 'End time', 'type' => 'time', 'required' => true],
+            ],
+        ];
+    }
+
+    /**
+     * No update route — a document is replaced by uploading a new one and
+     * deleting the old, not edited in place. List + create (upload) +
+     * delete only.
+     *
+     * @return array<string, mixed>
+     */
+    private function employeeDocuments(): array
+    {
+        return [
+            'key' => 'employee_documents',
+            'labelField' => 'title',
+            'label' => 'Employee document',
+            'pluralLabel' => 'Employee documents',
+            'endpoint' => '/employee-documents',
+            'permissions' => ['view' => 'employee_document.view', 'create' => 'employee_document.upload', 'update' => null, 'delete' => 'employee_document.delete'],
+            'columns' => [
+                ['key' => 'employee.full_name', 'label' => 'Employee'],
+                ['key' => 'category', 'label' => 'Category'],
+                ['key' => 'title', 'label' => 'Title'],
+                ['key' => 'expires_at', 'label' => 'Expires'],
+                ['key' => 'is_expired', 'label' => 'Expired'],
+            ],
+            'fields' => [
+                ['key' => 'employee_id', 'label' => 'Employee', 'type' => 'relation', 'required' => true, 'relation' => ['resource' => 'employees']],
+                [
+                    'key' => 'category', 'label' => 'Category', 'type' => 'select', 'required' => true,
+                    'options' => [
+                        ['value' => 'nid', 'label' => 'National ID'],
+                        ['value' => 'passport', 'label' => 'Passport'],
+                        ['value' => 'contract', 'label' => 'Contract'],
+                        ['value' => 'offer_letter', 'label' => 'Offer letter'],
+                        ['value' => 'certificate', 'label' => 'Certificate'],
+                        ['value' => 'other', 'label' => 'Other'],
+                    ],
+                ],
+                ['key' => 'title', 'label' => 'Title', 'type' => 'string', 'required' => true],
+                ['key' => 'expires_at', 'label' => 'Expires on', 'type' => 'date', 'required' => false],
+                ['key' => 'file', 'label' => 'File', 'type' => 'file', 'required' => true, 'onlyOnCreate' => true],
             ],
         ];
     }
