@@ -93,3 +93,28 @@ it('hides another tenant\'s employee and 404s on direct access', function (): vo
     $this->actingAs($owner, 'sanctum')->getJson("/api/v1/employees/{$foreign->id}")->assertNotFound();
     $this->actingAs($owner, 'sanctum')->postJson("/api/v1/employees/{$foreign->id}/terminate")->assertNotFound();
 });
+
+it('paginates employees honouring a clamped per_page', function (): void {
+    $tenant = makeTenant();
+    $owner = makeUser($tenant, 'owner');
+    Employee::factory()->forTenant($tenant)->count(5)->create();
+    clearTenantContext();
+
+    $this->actingAs($owner, 'sanctum')->getJson('/api/v1/employees?per_page=2')
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('meta.per_page', 2)
+        ->assertJsonPath('meta.total', 5)
+        ->assertJsonPath('meta.last_page', 3);
+
+    $this->actingAs($owner, 'sanctum')->getJson('/api/v1/employees?per_page=2&page=2')
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('meta.current_page', 2);
+
+    // per_page is clamped to [1, 100] rather than trusted verbatim.
+    $this->actingAs($owner, 'sanctum')->getJson('/api/v1/employees?per_page=0')
+        ->assertOk()->assertJsonPath('meta.per_page', 1);
+    $this->actingAs($owner, 'sanctum')->getJson('/api/v1/employees?per_page=9999')
+        ->assertOk()->assertJsonPath('meta.per_page', 100);
+});
