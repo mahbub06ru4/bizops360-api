@@ -64,6 +64,16 @@ it('returns the admin panel schema for an authenticated tenant user', function (
 
     $dashboardKeys = array_column($response->json('data.dashboards'), 'key');
     expect($dashboardKeys)->toEqual(['operations_overview', 'crm_reports', 'finance_reports']);
+
+    $charts = collect($response->json('data.charts'))->keyBy('key');
+    expect($charts->keys()->all())->toEqual(['finance_trend', 'tasks_by_status', 'projects_by_status', 'leads_by_stage']);
+    expect($charts['finance_trend']['type'])->toBe('area');
+    expect($charts['finance_trend']['xKey'])->toBe('label');
+    expect(array_column($charts['finance_trend']['series'], 'key'))->toEqual(['income', 'expense']);
+    expect($charts['tasks_by_status']['dataPath'])->toBe('tasks.by_status');
+    expect($charts['tasks_by_status']['endpoint'])->toBe('/operations/overview');
+    expect($charts['projects_by_status']['endpoint'])->toBe('/operations/overview');
+    expect($charts['leads_by_stage']['type'])->toBe('bar');
 });
 
 it('requires authentication', function (): void {
