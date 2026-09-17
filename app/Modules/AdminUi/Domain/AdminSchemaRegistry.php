@@ -47,11 +47,25 @@ namespace App\Modules\AdminUi\Domain;
  * A column with `link: true` renders its value as a clickable/downloadable
  * link instead of plain text. A resource with `summaryEndpoint` gets a row
  * of stat cards fetched from that endpoint rendered above its table — for
- * read-only aggregate data no generic table/form captures. A resource with
- * `detailPath` (may contain `{id}`) renders its label cell as a link to
- * that route instead of plain text — for a resource whose detail view
- * (contacts, activity timelines, payment history, ...) is still a
- * hand-built page, so the generic list can still route into it.
+ * read-only aggregate data no generic table/form captures.
+ *
+ * A resource with `detail` gets its label cell linked to a generic
+ * `/admin/{key}/{id}` detail page instead of plain text, built from:
+ *   - `fields`: read-only {key, label} pairs shown at the top.
+ *   - `relatedLists`: nested sub-resources with their own CRUD — each has
+ *     `listEndpoint` (`{id}` = parent id, GET+POST) and `rowEndpoint`
+ *     (`{id}` = the row's own id, PUT+DELETE — omit whichever the backend
+ *     doesn't support), the usual `permissions`/`columns`/`fields`/
+ *     `actions`, and optional `ownerField`/`bypassPermission` (update/
+ *     delete show only for the row's own author unless the viewer holds
+ *     `bypassPermission` — e.g. task comments).
+ *   - `embeddedLists`: read-only tables sourced from an array already
+ *     present in the resource's own GET `{id}` response (a `path` dot-path
+ *     into it) rather than a separate endpoint — e.g. Invoice's payments/
+ *     refunds, which the backend returns eager-loaded on `show()` and (for
+ *     refunds) has no standalone list route for at all.
+ *   - `activity`: a read-only timeline (`listEndpoint`) plus an optional
+ *     freeform note form (`noteEndpoint`, gated by `notePermission`).
  *
  * `charts` (top-level, alongside `resources`) describes the main
  * dashboard's charts — see the inline comment above that key in `build()`.
@@ -761,7 +775,6 @@ class AdminSchemaRegistry
             'key' => 'tasks',
             'labelField' => 'title',
             'label' => 'Task',
-            'detailPath' => '/operations/tasks/{id}',
             'pluralLabel' => 'Tasks',
             'endpoint' => '/tasks',
             'permissions' => ['view' => 'task.view', 'create' => 'task.create', 'update' => 'task.update', 'delete' => 'task.delete'],
@@ -815,6 +828,144 @@ class AdminSchemaRegistry
                 ],
                 ['key' => 'due_at', 'label' => 'Due', 'type' => 'date', 'required' => false],
             ],
+            'detail' => [
+                'fields' => [
+                    ['key' => 'description', 'label' => 'Description'],
+                    ['key' => 'project.name', 'label' => 'Project'],
+                    ['key' => 'assignee_employee.full_name', 'label' => 'Assignee'],
+                ],
+                'relatedLists' => [
+                    [
+                        'key' => 'comments', 'label' => 'Comments', 'labelField' => 'body',
+                        'listEndpoint' => '/tasks/{id}/comments', 'rowEndpoint' => '/task-comments/{id}',
+                        'permissions' => ['view' => 'task.view', 'create' => 'task.view', 'update' => 'task.view', 'delete' => 'task.view'],
+                        'ownerField' => 'author_id', 'bypassPermission' => 'task.view_all',
+                        'columns' => [
+                            ['key' => 'author_name', 'label' => 'Author'],
+                            ['key' => 'body', 'label' => 'Comment'],
+                            ['key' => 'created_at', 'label' => 'Posted'],
+                        ],
+                        'fields' => [
+                            ['key' => 'body', 'label' => 'Comment', 'type' => 'text', 'required' => true],
+                        ],
+                    ],
+                    [
+                        'key' => 'attachments', 'label' => 'Attachments', 'labelField' => 'original_name',
+                        'listEndpoint' => '/tasks/{id}/attachments', 'rowEndpoint' => '/task-attachments/{id}',
+                        'permissions' => ['view' => 'task.view', 'create' => 'task.view', 'update' => null, 'delete' => 'task.view'],
+                        'ownerField' => 'uploaded_by', 'bypassPermission' => 'task.view_all',
+                        'columns' => [
+                            ['key' => 'original_name', 'label' => 'File'],
+                            ['key' => 'uploader_name', 'label' => 'Uploaded by'],
+                            ['key' => 'download_url', 'label' => 'Download', 'link' => true],
+                        ],
+                        'fields' => [
+                            ['key' => 'file', 'label' => 'File', 'type' => 'file', 'required' => true],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Contacts/follow-ups/activity are identical under leads and customers,
+     * just with a different endpoint prefix and permission-string family —
+     * shared here rather than duplicated in both resource methods.
+     *
+     * @return array<string, mixed>
+     */
+    private function crmContacts(string $parentSlug, string $viewPermission, string $updatePermission): array
+    {
+        return [
+            'key' => 'contacts',
+            'label' => 'Contacts',
+            'labelField' => 'name',
+            'listEndpoint' => "/{$parentSlug}/{id}/contacts",
+            'rowEndpoint' => '/contacts/{id}',
+            'permissions' => [
+                'view' => $viewPermission, 'create' => $updatePermission,
+                'update' => $updatePermission, 'delete' => $updatePermission,
+            ],
+            'columns' => [
+                ['key' => 'name', 'label' => 'Name'],
+                ['key' => 'title', 'label' => 'Title'],
+                ['key' => 'email', 'label' => 'Email'],
+                ['key' => 'phone', 'label' => 'Phone'],
+                ['key' => 'is_primary', 'label' => 'Primary'],
+            ],
+            'fields' => [
+                ['key' => 'name', 'label' => 'Name', 'type' => 'string', 'required' => true],
+                ['key' => 'title', 'label' => 'Title', 'type' => 'string', 'required' => false],
+                ['key' => 'email', 'label' => 'Email', 'type' => 'string', 'required' => false],
+                ['key' => 'phone', 'label' => 'Phone', 'type' => 'string', 'required' => false],
+                ['key' => 'is_primary', 'label' => 'Primary contact', 'type' => 'boolean', 'required' => false],
+                ['key' => 'notes', 'label' => 'Notes', 'type' => 'text', 'required' => false],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function crmFollowUps(string $parentSlug, string $viewPermission, string $updatePermission): array
+    {
+        return [
+            'key' => 'follow_ups',
+            'label' => 'Follow-ups',
+            'labelField' => 'id',
+            'listEndpoint' => "/{$parentSlug}/{id}/follow-ups",
+            'rowEndpoint' => '/follow-ups/{id}',
+            'permissions' => [
+                'view' => $viewPermission, 'create' => $updatePermission,
+                'update' => 'follow_up.update', 'delete' => 'follow_up.delete',
+            ],
+            'columns' => [
+                ['key' => 'type', 'label' => 'Type'],
+                ['key' => 'due_at', 'label' => 'Due'],
+                ['key' => 'status', 'label' => 'Status'],
+                ['key' => 'assigned_employee.full_name', 'label' => 'Assigned to'],
+            ],
+            'fields' => [
+                [
+                    'key' => 'type', 'label' => 'Type', 'type' => 'select', 'required' => false,
+                    'options' => [
+                        ['value' => 'call', 'label' => 'Call'],
+                        ['value' => 'email', 'label' => 'Email'],
+                        ['value' => 'meeting', 'label' => 'Meeting'],
+                        ['value' => 'task', 'label' => 'Task'],
+                    ],
+                ],
+                ['key' => 'due_at', 'label' => 'Due', 'type' => 'date', 'required' => true],
+                ['key' => 'assigned_employee_id', 'label' => 'Assigned to', 'type' => 'relation', 'required' => false, 'relation' => ['resource' => 'employees']],
+                ['key' => 'notes', 'label' => 'Notes', 'type' => 'text', 'required' => false],
+            ],
+            'actions' => [
+                [
+                    'key' => 'complete', 'label' => 'Complete', 'method' => 'POST',
+                    'endpoint' => '/follow-ups/{id}/complete', 'permission' => 'follow_up.update',
+                    'fields' => [['key' => 'outcome', 'label' => 'Outcome', 'type' => 'text', 'required' => false]],
+                ],
+                [
+                    'key' => 'cancel', 'label' => 'Cancel', 'method' => 'POST', 'endpoint' => '/follow-ups/{id}/cancel',
+                    'permission' => 'follow_up.update', 'style' => 'destructive',
+                    'confirm' => 'Cancel this follow-up?', 'fields' => [],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function crmActivity(string $parentSlug, string $viewPermission, string $updatePermission): array
+    {
+        return [
+            'label' => 'Activity',
+            'listEndpoint' => "/{$parentSlug}/{id}/activities",
+            'noteEndpoint' => "/{$parentSlug}/{id}/notes",
+            'permission' => $viewPermission,
+            'notePermission' => $updatePermission,
         ];
     }
 
@@ -828,7 +979,6 @@ class AdminSchemaRegistry
             'labelField' => 'name',
             'label' => 'Lead',
             'pluralLabel' => 'Leads',
-            'detailPath' => '/crm/leads/{id}',
             'endpoint' => '/leads',
             'permissions' => ['view' => 'lead.view', 'create' => 'lead.create', 'update' => 'lead.update', 'delete' => 'lead.delete'],
             'searchable' => false,
@@ -874,6 +1024,21 @@ class AdminSchemaRegistry
                 ['key' => 'owner_employee_id', 'label' => 'Owner', 'type' => 'relation', 'required' => false, 'relation' => ['resource' => 'employees']],
                 ['key' => 'notes', 'label' => 'Notes', 'type' => 'text', 'required' => false],
             ],
+            'detail' => [
+                'fields' => [
+                    ['key' => 'company', 'label' => 'Company'],
+                    ['key' => 'email', 'label' => 'Email'],
+                    ['key' => 'phone', 'label' => 'Phone'],
+                    ['key' => 'source', 'label' => 'Source'],
+                    ['key' => 'estimated_value', 'label' => 'Estimated value'],
+                    ['key' => 'notes', 'label' => 'Notes'],
+                ],
+                'relatedLists' => [
+                    $this->crmContacts('leads', 'lead.view', 'lead.update'),
+                    $this->crmFollowUps('leads', 'lead.view', 'lead.update'),
+                ],
+                'activity' => $this->crmActivity('leads', 'lead.view', 'lead.update'),
+            ],
         ];
     }
 
@@ -887,7 +1052,6 @@ class AdminSchemaRegistry
             'labelField' => 'name',
             'label' => 'Customer',
             'pluralLabel' => 'Customers',
-            'detailPath' => '/crm/customers/{id}',
             'endpoint' => '/customers',
             'permissions' => ['view' => 'customer.view', 'create' => 'customer.create', 'update' => 'customer.update', 'delete' => 'customer.delete'],
             'columns' => [
@@ -911,6 +1075,20 @@ class AdminSchemaRegistry
                 ['key' => 'phone', 'label' => 'Phone', 'type' => 'string', 'required' => false],
                 ['key' => 'address', 'label' => 'Address', 'type' => 'string', 'required' => false],
                 ['key' => 'owner_employee_id', 'label' => 'Owner', 'type' => 'relation', 'required' => false, 'relation' => ['resource' => 'employees']],
+            ],
+            'detail' => [
+                'fields' => [
+                    ['key' => 'type', 'label' => 'Type'],
+                    ['key' => 'company', 'label' => 'Company'],
+                    ['key' => 'email', 'label' => 'Email'],
+                    ['key' => 'phone', 'label' => 'Phone'],
+                    ['key' => 'address', 'label' => 'Address'],
+                ],
+                'relatedLists' => [
+                    $this->crmContacts('customers', 'customer.view', 'customer.update'),
+                    $this->crmFollowUps('customers', 'customer.view', 'customer.update'),
+                ],
+                'activity' => $this->crmActivity('customers', 'customer.view', 'customer.update'),
             ],
         ];
     }
@@ -1064,7 +1242,6 @@ class AdminSchemaRegistry
             'labelField' => 'number',
             'label' => 'Invoice',
             'pluralLabel' => 'Invoices',
-            'detailPath' => '/finance/invoices/{id}',
             'endpoint' => '/invoices',
             'permissions' => ['view' => 'invoice.view', 'create' => 'invoice.create', 'update' => 'invoice.update', 'delete' => 'invoice.delete'],
             'columns' => [
@@ -1132,6 +1309,44 @@ class AdminSchemaRegistry
                 ['key' => 'due_date', 'label' => 'Due date', 'type' => 'date', 'required' => false],
                 ['key' => 'amount', 'label' => 'Amount', 'type' => 'number', 'required' => true],
                 ['key' => 'notes', 'label' => 'Notes', 'type' => 'text', 'required' => false],
+            ],
+            'detail' => [
+                'fields' => [
+                    ['key' => 'customer.name', 'label' => 'Customer'],
+                    ['key' => 'issue_date', 'label' => 'Issue date'],
+                    ['key' => 'due_date', 'label' => 'Due date'],
+                    ['key' => 'amount', 'label' => 'Amount'],
+                    ['key' => 'amount_paid', 'label' => 'Paid'],
+                    ['key' => 'amount_refunded', 'label' => 'Refunded'],
+                    ['key' => 'amount_due', 'label' => 'Due'],
+                    ['key' => 'notes', 'label' => 'Notes'],
+                ],
+                // Payments/refunds are embedded in GET /invoices/{id} itself
+                // (InvoiceController::show eager-loads both) rather than
+                // their own list endpoint — refunds in particular has no
+                // GET route at all, only POST. Read-only: they're created
+                // via the record_payment/refund actions above, not a form
+                // here.
+                'embeddedLists' => [
+                    [
+                        'key' => 'payments', 'label' => 'Payments', 'path' => 'payments',
+                        'columns' => [
+                            ['key' => 'paid_on', 'label' => 'Paid on'],
+                            ['key' => 'method', 'label' => 'Method'],
+                            ['key' => 'amount', 'label' => 'Amount'],
+                            ['key' => 'reference', 'label' => 'Reference'],
+                        ],
+                    ],
+                    [
+                        'key' => 'refunds', 'label' => 'Refunds', 'path' => 'refunds',
+                        'columns' => [
+                            ['key' => 'refunded_on', 'label' => 'Refunded on'],
+                            ['key' => 'method', 'label' => 'Method'],
+                            ['key' => 'amount', 'label' => 'Amount'],
+                            ['key' => 'reason', 'label' => 'Reason'],
+                        ],
+                    ],
+                ],
             ],
         ];
     }

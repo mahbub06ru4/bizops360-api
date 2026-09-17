@@ -57,10 +57,27 @@ it('returns the admin panel schema for an authenticated tenant user', function (
     expect($byKey['attendance']['summaryEndpoint'])->toBe('/attendance/summary');
     expect($byKey['leave_balances']['actions'][0]['scope'])->toBe('resource');
     expect($byKey['leave_balances']['actions'][0]['endpoint'])->toBe('/leave-balances');
-    expect($byKey['leads']['detailPath'])->toBe('/crm/leads/{id}');
-    expect($byKey['customers']['detailPath'])->toBe('/crm/customers/{id}');
-    expect($byKey['invoices']['detailPath'])->toBe('/finance/invoices/{id}');
-    expect($byKey['tasks']['detailPath'])->toBe('/operations/tasks/{id}');
+
+    // Generic detail pages: relatedLists (nested CRUD), embeddedLists
+    // (read-only, sourced from the parent's own GET {id} response), and
+    // an activity timeline with a note form.
+    expect(array_column($byKey['leads']['detail']['relatedLists'], 'key'))->toEqual(['contacts', 'follow_ups']);
+    expect($byKey['leads']['detail']['relatedLists'][0]['listEndpoint'])->toBe('/leads/{id}/contacts');
+    expect($byKey['leads']['detail']['relatedLists'][0]['rowEndpoint'])->toBe('/contacts/{id}');
+    expect($byKey['leads']['detail']['relatedLists'][1]['permissions']['update'])->toBe('follow_up.update');
+    expect(array_column($byKey['leads']['detail']['relatedLists'][1]['actions'], 'key'))->toEqual(['complete', 'cancel']);
+    expect($byKey['leads']['detail']['activity']['listEndpoint'])->toBe('/leads/{id}/activities');
+    expect($byKey['leads']['detail']['activity']['noteEndpoint'])->toBe('/leads/{id}/notes');
+    expect($byKey['customers']['detail']['relatedLists'][0]['listEndpoint'])->toBe('/customers/{id}/contacts');
+
+    expect(array_column($byKey['tasks']['detail']['relatedLists'], 'key'))->toEqual(['comments', 'attachments']);
+    expect($byKey['tasks']['detail']['relatedLists'][0]['ownerField'])->toBe('author_id');
+    expect($byKey['tasks']['detail']['relatedLists'][0]['bypassPermission'])->toBe('task.view_all');
+    expect($byKey['tasks']['detail']['relatedLists'][1]['columns'][2]['link'])->toBeTrue();
+
+    expect(array_column($byKey['invoices']['detail']['embeddedLists'], 'key'))->toEqual(['payments', 'refunds']);
+    expect($byKey['invoices']['detail']['embeddedLists'][0]['path'])->toBe('payments');
+    expect($byKey['invoices']['detail']['embeddedLists'][1]['path'])->toBe('refunds');
 
     $dashboardKeys = array_column($response->json('data.dashboards'), 'key');
     expect($dashboardKeys)->toEqual(['operations_overview', 'crm_reports', 'finance_reports']);
