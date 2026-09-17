@@ -52,6 +52,9 @@ namespace App\Modules\AdminUi\Domain;
  * that route instead of plain text — for a resource whose detail view
  * (contacts, activity timelines, payment history, ...) is still a
  * hand-built page, so the generic list can still route into it.
+ *
+ * `charts` (top-level, alongside `resources`) describes the main
+ * dashboard's charts — see the inline comment above that key in `build()`.
  */
 class AdminSchemaRegistry
 {
@@ -105,6 +108,40 @@ class AdminSchemaRegistry
                 ['key' => 'operations_overview', 'label' => 'Overview', 'href' => '/operations/overview', 'module' => 'operations', 'permission' => 'operations.view_dashboard'],
                 ['key' => 'crm_reports', 'label' => 'Reports', 'href' => '/crm/reports', 'module' => 'crm', 'permission' => 'crm.view_dashboard'],
                 ['key' => 'finance_reports', 'label' => 'Reports', 'href' => '/finance/reports', 'module' => 'finance', 'permission' => 'finance.view_reports'],
+            ],
+            // The main dashboard's charts, described instead of hand-coded:
+            // each names an endpoint, a permission, a chart `type`, and a
+            // `dataPath` (dot-path, mirroring `getPath` on the frontend) into
+            // that endpoint's response. 'area' charts also need `xKey` (the
+            // category field on each data-path row) and `series` (which
+            // numeric fields to plot); 'donut'/'bar' charts read `dataPath`
+            // as a plain {status: count} object and plot one slice/bar per
+            // key. Charts sharing an `endpoint` are fetched once and reused.
+            'charts' => [
+                [
+                    'key' => 'finance_trend', 'label' => 'Income vs. expense', 'type' => 'area',
+                    'endpoint' => '/finance/monthly', 'permission' => 'finance.view_reports',
+                    'dataPath' => 'months', 'xKey' => 'label',
+                    'series' => [
+                        ['key' => 'income', 'label' => 'Income'],
+                        ['key' => 'expense', 'label' => 'Expense'],
+                    ],
+                ],
+                [
+                    'key' => 'tasks_by_status', 'label' => 'Tasks by status', 'type' => 'donut',
+                    'endpoint' => '/operations/overview', 'permission' => 'operations.view_dashboard',
+                    'dataPath' => 'tasks.by_status',
+                ],
+                [
+                    'key' => 'projects_by_status', 'label' => 'Projects by status', 'type' => 'donut',
+                    'endpoint' => '/operations/overview', 'permission' => 'operations.view_dashboard',
+                    'dataPath' => 'projects.by_status',
+                ],
+                [
+                    'key' => 'leads_by_stage', 'label' => 'Sales pipeline by stage', 'type' => 'bar',
+                    'endpoint' => '/crm/overview', 'permission' => 'crm.view_dashboard',
+                    'dataPath' => 'leads.by_stage',
+                ],
             ],
             'resources' => [
                 $this->branches(),
