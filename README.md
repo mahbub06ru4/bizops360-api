@@ -1,58 +1,109 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# BizOps 360 — API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Multi-tenant Business Operations Management SaaS backend. Laravel 13 modular
+monolith serving `/api/v1` to the [admin console](https://github.com/mahbub06ru4/bizops360-admin)
+(web) and the Flutter mobile apps. Full product/engineering spec:
+`docs/spec.md`.
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Laravel 13, PHP 8.4+, PostgreSQL, Redis, Docker / Laravel Sail
+- Auth: Fortify/Breeze (web) + Sanctum (API). RBAC: `spatie/laravel-permission`
+  (teams mode — four fixed roles per tenant: owner/admin/manager/staff).
+- OpenAPI generated from code (`dedoc/scramble`)
+- Prod: Render (Docker web service) + Neon PostgreSQL
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Architecture
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```
+Interface (HTTP Controller) → Form Request → DTO → Action / Use Case → Domain → Infrastructure (Eloquent) → PostgreSQL
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Modular monolith under `app/Modules/*` (Identity, Tenant, Organization, HR,
+Operations, CRM, Finance, AdminUi, Industry/{Travel,RealEstate}).
+Cross-module calls go through another module's Actions, never its Eloquent
+models directly.
 
-## Contributing
+## Rules
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. Business logic must not live in controllers, jobs, or commands — only
+   in Actions/Domain.
+2. Use Form Requests for all HTTP validation.
+3. Use readonly DTOs for application input; construct them from the Form
+   Request.
+4. Use small, business-named Actions (`CreateEmployee`, `RecordPayment`)
+   — not one generic service per model, not for trivial CRUD.
+5. Use API Resources for every API response. Never return raw Eloquent
+   models or arrays from public APIs.
+6. Every tenant-owned model has a `tenant_id`, a tenant global scope, AND
+   its Action re-checks the current tenant context. A Policy guards every
+   tenant-owned resource.
+7. Enforce authorization via Policies on every read and write.
+8. Private document downloads use signed/temporary URLs + authorization.
+9. Do not modify already-released migrations — add a new one.
+10. Add a regression test with every bug fix.
 
-## Code of Conduct
+## The admin schema (`app/Modules/AdminUi`)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+The single biggest consumer-facing piece of this API is
+`GET /api/v1/admin/schema` (`AdminSchemaRegistry`) — it describes every
+CRUD resource, workflow action, and dashboard chart the admin console
+renders, so that frontend is a generic engine instead of one hand-written
+screen per resource. See that class's docblock for the full schema shape
+(`resources[].actions`, `resources[].detail.{relatedLists,embeddedLists,
+activity}`, `mode`/`paginated`/`summaryEndpoint`/`link` flags, top-level
+`dashboards` and `charts`).
 
-## Security Vulnerabilities
+**This registry does not replace Form Requests or Policies** — it mirrors
+them for the frontend's benefit. Every field, permission string, and
+endpoint in it must match a real Form Request/Policy/route; nothing here
+is itself a source of authorization or validation truth.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+When adding a new resource or workflow to `bizops360-api` that the admin
+panel should expose:
+1. Build it the normal way (Form Request → DTO → Action → Policy → API
+   Resource → route) — the schema describes existing capability, it
+   doesn't create it.
+2. Add (or extend) the corresponding entry in `AdminSchemaRegistry`.
+3. Add/extend the assertions in `tests/Feature/AdminUi/AdminSchemaApiTest.php`.
 
-## License
+No frontend change is needed for the admin panel to pick it up.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Commands (always via Sail)
+
+```bash
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan test
+./vendor/bin/sail bin pint
+./vendor/bin/sail bin phpstan analyse
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail artisan db:seed   # demo tenant + 4 role accounts, password: password
+./vendor/bin/sail psql              # raw SQL shell into the local Postgres
+```
+
+Never run `php` / `artisan` / `composer` directly on the host — always
+through Sail.
+
+## Deployment
+
+`render.yaml` defines two Render web services (`bizops360-api`, and a
+`bizops360-api-reverb` broadcasting service), Docker-built from
+`docker/production/Dockerfile`. Database is Neon Postgres (`DB_URL`,
+set manually in Render's dashboard — not in this repo). Migrations run
+automatically on every deploy (`entrypoint.sh`); seeding a tenant is a
+manual, one-time step via Render's Shell tab.
+
+## Definition of done
+
+- New/updated tests pass, including authorization + explicit cross-tenant
+  access tests for any tenant-owned resource.
+- Pint clean. PHPStan clean at the configured level.
+- OpenAPI still generates.
+
+## Verification
+
+```bash
+./vendor/bin/sail artisan test
+./vendor/bin/sail bin pint
+./vendor/bin/sail bin phpstan analyse
+```
