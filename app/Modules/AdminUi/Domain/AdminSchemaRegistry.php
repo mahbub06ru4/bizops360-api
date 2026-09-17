@@ -31,20 +31,27 @@ namespace App\Modules\AdminUi\Domain;
  * route) — the frontend hides that action rather than gating it on a
  * permission that would never be enough anyway.
  *
- * `actions`: named, row-level operations beyond plain create/update/delete —
- * approve/reject, convert, terminate, and the like. Each has a `key`,
- * `label`, HTTP `method`, `endpoint` (may contain a `{id}` placeholder),
- * `permission` (or `null` to always show, gated by the backend instead),
- * optional `confirm` text, optional `style` ('default'|'destructive'|
- * 'secondary'), optional `fields` (rendered as a small dialog form; an
- * action with no fields prompts `confirm` then submits immediately), and
- * optional `fetchDetail` (GET the record fresh before opening the dialog,
- * for fields whose `prefillFrom` needs data the list row doesn't carry).
+ * `actions`: named operations beyond plain create/update/delete — approve/
+ * reject, convert, terminate, and the like. Each has a `key`, `label`, HTTP
+ * `method`, `endpoint` (may contain a `{id}` placeholder), `permission` (or
+ * `null` to always show, gated by the backend instead), optional `confirm`
+ * text, optional `style` ('default'|'destructive'|'secondary'), optional
+ * `fields` (rendered as a small dialog form; an action with no fields
+ * prompts `confirm` then submits immediately), optional `fetchDetail` (GET
+ * the record fresh before opening the dialog, for fields whose
+ * `prefillFrom` needs data the list row doesn't carry), and optional
+ * `scope` ('row', the default — one button per row — or 'resource', a
+ * single button near "New X" not tied to any row, for a keyless
+ * create-or-update like LeaveBalance's upsert).
  *
  * A column with `link: true` renders its value as a clickable/downloadable
  * link instead of plain text. A resource with `summaryEndpoint` gets a row
  * of stat cards fetched from that endpoint rendered above its table — for
- * read-only aggregate data no generic table/form captures.
+ * read-only aggregate data no generic table/form captures. A resource with
+ * `detailPath` (may contain `{id}`) renders its label cell as a link to
+ * that route instead of plain text — for a resource whose detail view
+ * (contacts, activity timelines, payment history, ...) is still a
+ * hand-built page, so the generic list can still route into it.
  */
 class AdminSchemaRegistry
 {
@@ -487,8 +494,9 @@ class AdminSchemaRegistry
 
     /**
      * No id-based update route — balances are set via a bare PUT with the
-     * employee/leave-type/year as the key, not /leave-balances/{id}. List
-     * only, for now.
+     * employee/leave-type/year as the key, not /leave-balances/{id}. Exposed
+     * as a `scope: 'resource'` action (not tied to any one row) instead of
+     * `fields`/create permission.
      *
      * @return array<string, mixed>
      */
@@ -508,6 +516,18 @@ class AdminSchemaRegistry
                 ['key' => 'entitled_days', 'label' => 'Entitled'],
                 ['key' => 'used_days', 'label' => 'Used'],
                 ['key' => 'remaining_days', 'label' => 'Remaining'],
+            ],
+            'actions' => [
+                [
+                    'key' => 'set_balance', 'label' => 'Set balance', 'method' => 'PUT', 'scope' => 'resource',
+                    'endpoint' => '/leave-balances', 'permission' => 'leave.manage_balance',
+                    'fields' => [
+                        ['key' => 'employee_id', 'label' => 'Employee', 'type' => 'relation', 'required' => true, 'relation' => ['resource' => 'employees']],
+                        ['key' => 'leave_type_id', 'label' => 'Leave type', 'type' => 'relation', 'required' => true, 'relation' => ['resource' => 'leave_types']],
+                        ['key' => 'year', 'label' => 'Year', 'type' => 'number', 'required' => true],
+                        ['key' => 'entitled_days', 'label' => 'Entitled days', 'type' => 'number', 'required' => true],
+                    ],
+                ],
             ],
             'fields' => [],
         ];
@@ -704,6 +724,7 @@ class AdminSchemaRegistry
             'key' => 'tasks',
             'labelField' => 'title',
             'label' => 'Task',
+            'detailPath' => '/operations/tasks/{id}',
             'pluralLabel' => 'Tasks',
             'endpoint' => '/tasks',
             'permissions' => ['view' => 'task.view', 'create' => 'task.create', 'update' => 'task.update', 'delete' => 'task.delete'],
@@ -770,6 +791,7 @@ class AdminSchemaRegistry
             'labelField' => 'name',
             'label' => 'Lead',
             'pluralLabel' => 'Leads',
+            'detailPath' => '/crm/leads/{id}',
             'endpoint' => '/leads',
             'permissions' => ['view' => 'lead.view', 'create' => 'lead.create', 'update' => 'lead.update', 'delete' => 'lead.delete'],
             'searchable' => false,
@@ -828,6 +850,7 @@ class AdminSchemaRegistry
             'labelField' => 'name',
             'label' => 'Customer',
             'pluralLabel' => 'Customers',
+            'detailPath' => '/crm/customers/{id}',
             'endpoint' => '/customers',
             'permissions' => ['view' => 'customer.view', 'create' => 'customer.create', 'update' => 'customer.update', 'delete' => 'customer.delete'],
             'columns' => [
@@ -1004,6 +1027,7 @@ class AdminSchemaRegistry
             'labelField' => 'number',
             'label' => 'Invoice',
             'pluralLabel' => 'Invoices',
+            'detailPath' => '/finance/invoices/{id}',
             'endpoint' => '/invoices',
             'permissions' => ['view' => 'invoice.view', 'create' => 'invoice.create', 'update' => 'invoice.update', 'delete' => 'invoice.delete'],
             'columns' => [
