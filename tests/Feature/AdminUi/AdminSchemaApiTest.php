@@ -55,6 +55,12 @@ it('returns the admin panel schema for an authenticated tenant user', function (
     expect($byKey['users']['actions'][0]['fields'][0]['prefillFrom'])->toBe('roles');
     expect($byKey['employee_documents']['columns'][5]['link'])->toBeTrue();
     expect($byKey['attendance']['summaryEndpoint'])->toBe('/attendance/summary');
+    expect($byKey['leave_balances']['actions'][0]['scope'])->toBe('resource');
+    expect($byKey['leave_balances']['actions'][0]['endpoint'])->toBe('/leave-balances');
+    expect($byKey['leads']['detailPath'])->toBe('/crm/leads/{id}');
+    expect($byKey['customers']['detailPath'])->toBe('/crm/customers/{id}');
+    expect($byKey['invoices']['detailPath'])->toBe('/finance/invoices/{id}');
+    expect($byKey['tasks']['detailPath'])->toBe('/operations/tasks/{id}');
 
     $dashboardKeys = array_column($response->json('data.dashboards'), 'key');
     expect($dashboardKeys)->toEqual(['operations_overview', 'crm_reports', 'finance_reports']);
